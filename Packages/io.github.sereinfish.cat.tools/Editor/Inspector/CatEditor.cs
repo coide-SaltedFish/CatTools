@@ -18,13 +18,34 @@
 //  */
 #endregion
 
-using UnityEngine;
+using System.Collections.Generic;
+using UnityEditor;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace Editor.Inspector
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalBehaviour
+    public abstract class CatEditor : UnityEditor.Editor
     {
-        public bool toggle; // 默认开关状态
+        private Dictionary<string, SerializedProperty> _props;
+        
+        public SerializedProperty PropGet(string pName)
+        {
+            return PropGet(serializedObject, pName);
+        }
+        
+        public SerializedProperty PropGet(SerializedObject so, string pName)
+        {
+            if (_props.TryGetValue(pName, out var get)) return get;
+            
+            return _props[pName] = so.FindProperty(pName);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+            OnDraw();
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        protected abstract void OnDraw();
     }
 }

@@ -19,12 +19,16 @@
 #endregion
 
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalBehaviour
+    public class CatAnimLayerBehaviour : CatAvatarComponent
     {
-        public bool toggle; // 默认开关状态
+        [SerializeField]
+        public VRCAvatarDescriptor.AnimLayerType layerType = VRCAvatarDescriptor.AnimLayerType.FX;
+
+        [SerializeField]
+        public bool writeDefaultValues = true;
     }
 }
