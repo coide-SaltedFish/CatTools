@@ -18,13 +18,27 @@
 //  */
 #endregion
 
-using UnityEngine;
+using io.github.sereinfish.cat.tools.Components;
+using UnityEditor;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace Editor.Inspector
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalBehaviour
+    [CustomEditor(typeof(SelfConditionalToggle))]
+    public class SelfConditionalToggleInspector : ConditionalEditor<SelfConditionalToggle>
     {
-        public bool toggle; // 默认开关状态
+        private SerializedProperty _toggleProp;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            _toggleProp = PropGet(nameof(SelfConditionalToggle.toggle));
+        }
+
+        protected override void OnDraw()
+        {
+            base.OnDraw();
+            
+            EditorGUILayout.PropertyField(_toggleProp);
+        }
     }
 }

@@ -18,13 +18,12 @@
 //  */
 #endregion
 
-using UnityEngine;
+using io.github.sereinfish.cat.tools.Conditions;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalBehaviour
+    public class ConditionalBehaviour : CatAnimLayerBehaviour
     {
-        public bool toggle; // 默认开关状态
+        public ParameterOrConditions conditions;
     }
 }
