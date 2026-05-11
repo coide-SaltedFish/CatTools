@@ -18,13 +18,19 @@
 //  */
 #endregion
 
-using UnityEngine;
+using System.Linq;
+using HarmonyLib;
+using UnityEditor.Animations;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class BlendTreeExtensions
     {
-       
+        public static void AddChildMotion(this BlendTree blendTree, ChildMotion motion, string name, float weight)
+        {
+            motion.threshold = weight;
+            motion.directBlendParameter = name;
+            blendTree.children = blendTree.children.AddItem(motion).ToArray();
+        }
     }
 }

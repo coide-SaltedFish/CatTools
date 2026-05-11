@@ -18,8 +18,11 @@
 //  */
 #endregion
 
+using io.github.sereinfish.cat.tools.editor.pass;
 using io.github.sereinfish.cat.tools.editor.plugin;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
+using UnityEngine;
 
 [assembly: ExportsPlugin(typeof(PluginDefinition))]
 namespace io.github.sereinfish.cat.tools.editor.plugin
@@ -31,7 +34,19 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
         
         protected override void Configure()
         {
-            
+            var seq = InPhase(BuildPhase.Transforming);
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            {
+                s.Run(ComponentHandlerPass.Instance);
+            });
+            // 移除所有 CatComponent
+            InPhase(BuildPhase.Optimizing).Run("Remove CatComponent", context =>
+            {
+                foreach (var comp in context.AvatarRootObject.GetComponentsInChildren<CatAvatarComponent>(true))
+                {
+                    Object.DestroyImmediate(comp);
+                }
+            });
         }
     }
 }

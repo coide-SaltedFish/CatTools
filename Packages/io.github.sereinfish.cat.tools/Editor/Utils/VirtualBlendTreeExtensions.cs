@@ -18,13 +18,22 @@
 //  */
 #endregion
 
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class VirtualBlendTreeExtensions
     {
-       
+        public static void AddChildMotion(this VirtualBlendTree blendTree, VirtualMotion clip, string name, float weight)
+        {
+            var child = new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = clip,
+                DirectBlendParameter = name,
+                Threshold = weight,
+            };
+            blendTree.Children = blendTree.Children.Add(child);
+        }
     }
 }

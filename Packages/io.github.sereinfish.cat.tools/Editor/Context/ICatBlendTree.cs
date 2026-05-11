@@ -18,33 +18,27 @@
 //  */
 #endregion
 
-namespace io.github.sereinfish.cat.tools.Conditions
+using io.github.sereinfish.cat.tools.Conditions;
+using UnityEngine;
+
+namespace io.github.sereinfish.cat.tools.editor.context
 {
-    public enum CatAnimatorConditionRuntimeMode
+    public interface ICatBlendTree
     {
         /// <summary>
-        ///   <para>The condition is true when the parameter value is true.</para>
+        /// 检查是否可以加入BlendTree
         /// </summary>
-        If,
+        /// <param name="conditions"></param>
+        /// <returns></returns>
+        public bool Check(ParameterOrConditions conditions);
+        
         /// <summary>
-        ///   <para>The condition is true when the parameter value is false.</para>
+        /// 添加动画片段
         /// </summary>
-        IfNot,
-        /// <summary>
-        ///   <para>The condition is true when parameter value is greater than the threshold.</para>
-        /// </summary>
-        Greater,
-        /// <summary>
-        ///   <para>The condition is true when the parameter value is less than the threshold.</para>
-        /// </summary>
-        Less,
-        /// <summary>
-        ///   <para>The condition is true when parameter value is equal to the threshold.</para>
-        /// </summary>
-        Equals,
-        /// <summary>
-        ///   <para>The condition is true when the parameter value is not equal to the threshold.</para>
-        /// </summary>
-        NotEqual
+        public bool Add(ParameterOrConditions conditions, AnimationClip clip);
+
+        public string[] GetDirectBlendParameters();
+        
+        public T GetBlendTree<T>() where T : class;
     }
 }

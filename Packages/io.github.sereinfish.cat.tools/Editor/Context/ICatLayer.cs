@@ -19,40 +19,36 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
+using System.Collections.Immutable;
+using UnityEditorInternal;
+using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.editor.inspector
+namespace io.github.sereinfish.cat.tools.editor.context
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    public interface ICatLayer
     {
-        public Dictionary<string, SerializedProperty> Props { get; } = new();
+        public string Name { get; set; }
+        public ICatStateMachine StateMachine { get; }
         
-        public SerializedProperty PropGet(string pName)
-        {
-            return PropGet(serializedObject, pName);
-        }
+        public ICatState DefaultState { get; set; }
+        public Vector3 EntryPosition { get; set; }
+        public Vector3 AnyStatePosition { get; set; }
         
-        public SerializedProperty PropGet(SerializedObject so, string pName)
+        public ImmutableList<ICatStateTransition> AnyStateTransitions { get; set; }
+        
+        public ICatState AddState(string name, Motion motion = null, Vector3? position = null);
+
+        public static ICatLayer Create(ICatContext context, string name)
         {
-            if (Props.TryGetValue(pName, out var get)) return get;
-            
-            return Props[pName] = so.FindProperty(pName);
+            return context.CreateLayer(name);
         }
 
-        public override void OnInspectorGUI()
+        public ICatLayer AddToController(ICatAnimatorController controller)
         {
-            serializedObject.Update();
-            OnDraw();
-            serializedObject.ApplyModifiedProperties();
+            controller.AddLayer(this);
+            return this;
         }
 
-        private void OnEnable()
-        {
-            Init();
-        }
-
-        protected abstract void OnDraw();
-        protected abstract void Init();
+        public T GetLayer<T>() where T : class;
     }
 }

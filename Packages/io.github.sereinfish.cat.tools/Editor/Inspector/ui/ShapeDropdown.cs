@@ -19,40 +19,39 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 
-namespace io.github.sereinfish.cat.tools.editor.inspector
+namespace io.github.sereinfish.cat.tools.editor.inspector.ui
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    internal class ShapeDropdown : AdvancedDropdown
     {
-        public Dictionary<string, SerializedProperty> Props { get; } = new();
-        
-        public SerializedProperty PropGet(string pName)
+        private readonly string[] _options;
+        private readonly Action<string> _onSelected;
+
+        public ShapeDropdown(string[] options, Action<string> onSelected)
+            : base(new AdvancedDropdownState())
         {
-            return PropGet(serializedObject, pName);
-        }
-        
-        public SerializedProperty PropGet(SerializedObject so, string pName)
-        {
-            if (Props.TryGetValue(pName, out var get)) return get;
-            
-            return Props[pName] = so.FindProperty(pName);
+            _options = options;
+            _onSelected = onSelected;
+
+            minimumSize = new UnityEngine.Vector2(300, 400);
         }
 
-        public override void OnInspectorGUI()
+        protected override AdvancedDropdownItem BuildRoot()
         {
-            serializedObject.Update();
-            OnDraw();
-            serializedObject.ApplyModifiedProperties();
+            var root = new AdvancedDropdownItem("BlendShapes");
+
+            foreach (var option in _options)
+            {
+                root.AddChild(new AdvancedDropdownItem(option));
+            }
+
+            return root;
         }
 
-        private void OnEnable()
+        protected override void ItemSelected(AdvancedDropdownItem item)
         {
-            Init();
+            _onSelected?.Invoke(item.name);
         }
-
-        protected abstract void OnDraw();
-        protected abstract void Init();
     }
 }

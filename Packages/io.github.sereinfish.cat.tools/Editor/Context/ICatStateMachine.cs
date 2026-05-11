@@ -18,13 +18,20 @@
 //  */
 #endregion
 
+using System.Collections.Immutable;
+using JetBrains.Annotations;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.context
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public interface ICatStateMachine
     {
-       
+        public ICatState DefaultState { get; set; }
+        public Vector3 EntryPosition { get; set; }
+        public Vector3 AnyStatePosition { get; set; }
+        
+        public ImmutableList<ICatStateTransition> AnyStateTransitions { get; set; }
+        
+        public ICatState AddState(string name, [CanBeNull] Motion motion = null, Vector3? position = null);
     }
 }

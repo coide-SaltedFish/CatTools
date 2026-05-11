@@ -8,6 +8,39 @@
     },
     "com.vrchat.base": {
       "version": "3.10.3"
+    },
+    "jp.lilxyzw.editortoolbox": {
+      "version": "1.11.0"
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "2.3.2"
+    },
+    "jp.lilxyzw.lilycalinventory": {
+      "version": "1.5.2"
+    },
+    "jp.lilxyzw.outlinesmoother": {
+      "version": "1.0.1"
+    },
+    "jp.lilxyzw.lilpbr": {
+      "version": "1.0.0"
+    },
+    "jp.lilxyzw.lilemo": {
+      "version": "1.0.0"
+    },
+    "jp.lilxyzw.avatar-utils": {
+      "version": "2.1.2"
+    },
+    "jp.lilxyzw.ndmfmeshsimplifier": {
+      "version": "0.3.0"
+    },
+    "jp.lilxyzw.anythingreplacer": {
+      "version": "1.0.0"
+    },
+    "lyuma.av3emulator": {
+      "version": "3.4.10"
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.9.8"
     }
   },
   "locked": {
@@ -24,6 +57,68 @@
     "com.vrchat.base": {
       "version": "3.10.3",
       "dependencies": {}
+    },
+    "jp.lilxyzw.editortoolbox": {
+      "version": "1.11.0",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "2.3.2",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.lilycalinventory": {
+      "version": "1.5.2",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.outlinesmoother": {
+      "version": "1.0.1",
+      "dependencies": {
+        "nadena.dev.ndmf": "^1.5.0"
+      }
+    },
+    "jp.lilxyzw.lilpbr": {
+      "version": "1.0.0",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.lilemo": {
+      "version": "1.0.0",
+      "dependencies": {
+        "nadena.dev.modular-avatar": "^1.14"
+      }
+    },
+    "nadena.dev.modular-avatar": {
+      "version": "1.16.2",
+      "dependencies": {
+        "nadena.dev.ndmf": ">=1.11.0 <2.0.0-a"
+      }
+    },
+    "jp.lilxyzw.avatar-utils": {
+      "version": "2.1.2",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.ndmfmeshsimplifier": {
+      "version": "0.3.0",
+      "dependencies": {
+        "nadena.dev.ndmf": "^1.5.0"
+      }
+    },
+    "jp.lilxyzw.anythingreplacer": {
+      "version": "1.0.0",
+      "dependencies": {
+        "nadena.dev.ndmf": "^1.5.0"
+      }
+    },
+    "lyuma.av3emulator": {
+      "version": "3.4.10",
+      "dependencies": {
+        "com.vrchat.avatars": "^3.1.0"
+      }
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.9.8",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.5.2 <3.11.X"
+      }
     }
   }
 }

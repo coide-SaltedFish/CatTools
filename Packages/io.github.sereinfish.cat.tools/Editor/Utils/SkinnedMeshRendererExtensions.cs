@@ -20,11 +20,20 @@
 
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class SkinnedMeshRendererExtensions
     {
-       
+        public static float? GetBlendShapeValueByName(this SkinnedMeshRenderer smr, string name)
+        {
+            if (smr == null || smr.sharedMesh == null)
+                return null;
+            
+            var mesh = smr.sharedMesh;
+            var index = mesh.GetBlendShapeIndex(name);
+            if (index >= 0) return smr.GetBlendShapeWeight(index);
+            Debug.LogWarning($"BlendShape 不存在: {name}");
+            return null;
+        }
     }
 }

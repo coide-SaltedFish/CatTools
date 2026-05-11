@@ -18,13 +18,16 @@
 //  */
 #endregion
 
+using System.Collections.Immutable;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.context
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public interface ICatAnimatorController
     {
-       
+        public ImmutableDictionary<string, AnimatorControllerParameter> Parameters { get; set; }
+
+        public void AddLayer(ICatLayer layer, LayerPriority priority = default);
     }
 }

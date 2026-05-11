@@ -18,13 +18,19 @@
 //  */
 #endregion
 
+using io.github.sereinfish.cat.tools.Conditions;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace Editor.Animator.BlendTree
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public interface ISingleBlendTree
     {
-       
+        public bool Check(ParameterOrConditions conditions);
+
+        public bool Add(ParameterOrConditions conditions, AnimationClip clip);
+        
+        public string[] GetParameterNames();
+
+        public T GetBlendTree<T>() where T : class;
     }
 }

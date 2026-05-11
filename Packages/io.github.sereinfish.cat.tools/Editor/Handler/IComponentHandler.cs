@@ -18,13 +18,21 @@
 //  */
 #endregion
 
-using UnityEngine;
+using io.github.sereinfish.cat.tools.editor.context;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.handler
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public interface IComponentHandler
     {
-       
+        bool Match(object t);
+        void Execute(ICatContext context, object entity);
+    }
+    
+    public abstract class ComponentHandler<T> : IComponentHandler
+    {
+        bool IComponentHandler.Match(object t) => t is T;
+
+        public abstract void Execute(ICatContext context, T entity);
+        public void Execute(ICatContext context, object entity) => Execute(context, (T)entity);
     }
 }

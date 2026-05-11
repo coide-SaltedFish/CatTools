@@ -19,40 +19,42 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
+using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.editor.inspector
+namespace io.github.sereinfish.cat.tools.editor.animator.builder
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    public class AnimationBuilder
     {
-        public Dictionary<string, SerializedProperty> Props { get; } = new();
+        public readonly AnimationClip Clip = new AnimationClip();
         
-        public SerializedProperty PropGet(string pName)
+        public AnimationBuilder Name(string name)
         {
-            return PropGet(serializedObject, pName);
+            Clip.name = name;
+            return this;
+        }
+
+        public AnimationBuilder SetCurve(string path, Type type, string propertyName, Action<AnimationCurveBuilder> action)
+        {
+            var curveBuilder = new AnimationCurveBuilder();
+            action(curveBuilder);
+            Clip.SetCurve(path, typeof(GameObject), "m_IsActive", curveBuilder.Build());
+            return this;
+        }
+
+        public AnimationBuilder Run(Action<AnimationBuilder> action)
+        {
+            action(this);
+            return this;
         }
         
-        public SerializedProperty PropGet(SerializedObject so, string pName)
+        public AnimationClip Build()
         {
-            if (Props.TryGetValue(pName, out var get)) return get;
-            
-            return Props[pName] = so.FindProperty(pName);
+            return Clip;
         }
-
-        public override void OnInspectorGUI()
+        
+        public static AnimationBuilder Create()
         {
-            serializedObject.Update();
-            OnDraw();
-            serializedObject.ApplyModifiedProperties();
+            return new AnimationBuilder();
         }
-
-        private void OnEnable()
-        {
-            Init();
-        }
-
-        protected abstract void OnDraw();
-        protected abstract void Init();
     }
 }

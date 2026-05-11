@@ -22,9 +22,9 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    [AddComponentMenu("CatTools/TargetsConditionalToggle")]
+    public class TargetsConditionalToggle : ConditionalToggle
     {
-       
+        
     }
 }

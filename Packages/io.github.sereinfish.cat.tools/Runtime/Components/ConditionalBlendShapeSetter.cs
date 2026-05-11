@@ -19,40 +19,31 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
+using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.editor.inspector
+namespace io.github.sereinfish.cat.tools.Components
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    [AddComponentMenu("CatTools/ConditionalBlendShapeSetter")]
+    public class ConditionalBlendShapeSetter : ConditionalBehaviour
     {
-        public Dictionary<string, SerializedProperty> Props { get; } = new();
+        public GameObject[] targets; // 保留，一点用没有
+        public ShapeChangeInfo[] shapeChangeInfos;
+        public bool restoreToggle = false; // 当条件不成立时，强制复原为默认值
         
-        public SerializedProperty PropGet(string pName)
+        [Serializable]
+        public enum ShapeChangeType
         {
-            return PropGet(serializedObject, pName);
+            // Delete,
+            Set
         }
         
-        public SerializedProperty PropGet(SerializedObject so, string pName)
+        [Serializable]
+        public struct ShapeChangeInfo
         {
-            if (Props.TryGetValue(pName, out var get)) return get;
-            
-            return Props[pName] = so.FindProperty(pName);
+            public Transform target;
+            public string shapeName;
+            public ShapeChangeType changeType;
+            public float value;
         }
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-            OnDraw();
-            serializedObject.ApplyModifiedProperties();
-        }
-
-        private void OnEnable()
-        {
-            Init();
-        }
-
-        protected abstract void OnDraw();
-        protected abstract void Init();
     }
 }
