@@ -22,9 +22,16 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public class ConditionalToggle : ConditionalBehaviour
     {
-       
+        public GameObject[] targets;
+        
+        public bool toggle = true; // 条件满足时状态
+
+        public bool isSetDefaultActive = false; // 是否设置默认开关状态
+        
+        public bool defaultActive = false; // 默认开关状态
+
+        public bool reverseToggle = false; // 当不成立时，反转开关状态
     }
 }

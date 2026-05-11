@@ -18,40 +18,46 @@
 //  */
 #endregion
 
+using System;
+using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.inspector.ui;
+using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    public abstract class ConditionalEditor<T> : CatEditor where T : ConditionalBehaviour
+    [CustomEditor(typeof(ConditionalBlendShapeSetter))]
+    public class ConditionalBlendShapeSetterInspector : ConditionalEditor<ConditionalBlendShapeSetter>
     {
-        protected SerializedProperty ConditionsProp;
-
-        private ParameterConditionList<ConditionalBehaviour> _parameterConditionList;
-
+        private ShapeChangeList _shapeChangeList;
+        private SerializedProperty _shapeChangeInfosProp;
+        private SerializedProperty _restoreToggleProp;
+        
         protected override void Init()
         {
-            ConditionsProp = PropGet(nameof(ConditionalBehaviour.conditions));
+            base.Init();
+            // _shapeChangeInfosProp = PropGet(nameof(ConditionalBlendShapeSetter.shapeChangeInfos));
+            _restoreToggleProp = PropGet(nameof(ConditionalBlendShapeSetter.restoreToggle));
+            _shapeChangeList = new ShapeChangeList(((ConditionalBlendShapeSetter)target).gameObject.GetAvatarRoot(), serializedObject);
         }
 
         protected override void OnDraw()
         {
-            DrawLayer();
-            DrawConditions();
+            base.OnDraw();
+            
+            _shapeChangeList.DoLayout();
+            EditorGUILayout.PropertyField(_restoreToggleProp, new GUIContent("条件不满足时恢复为默认值"));
         }
 
-        protected void DrawConditions()
+        private void OnDestroy()
         {
-            _parameterConditionList ??= new ParameterConditionList<ConditionalBehaviour>(serializedObject);
-            _parameterConditionList.DoLayout();
+            _shapeChangeList?.OnDisableWindow();
         }
 
-        protected void DrawLayer()
+        private void OnDisable()
         {
-            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.layerType)), new GUIContent("Layer类型"));
-            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.writeDefaultValues)));
+            _shapeChangeList?.OnDisableWindow();
         }
     }
 }

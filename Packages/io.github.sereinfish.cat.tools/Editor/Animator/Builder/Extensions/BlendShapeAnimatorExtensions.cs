@@ -18,13 +18,23 @@
 //  */
 #endregion
 
+using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf.util;
+using UnityEditor;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.animator.builder.extensions
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class BlendShapeAnimatorExtensions
     {
-       
-    }
+        public static AnimationBuilder SetBlendShape(this AnimationBuilder builder, Transform root, Transform target, string blendShapeName,
+            float value)
+        {
+            var path = CatToolsPath.GetRelativePath(root, target);
+            var curve = new AnimationCurve(new Keyframe(0f, value));
+            var binding = EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), $"blendShape.{blendShapeName}");
+            AnimationUtility.SetEditorCurve(builder.Clip, binding, curve);
+            return builder;
+        }
+    }   
 }

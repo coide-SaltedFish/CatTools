@@ -18,13 +18,11 @@
 //  */
 #endregion
 
-using UnityEngine;
-
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.animator.builder
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class PropertyName
     {
-       
+        public static string ObjIsActive = "m_IsActive";
+        public static string MaterialsSlotData(int slot) => $"m_Materials.Array.data[{slot}]";
     }
 }

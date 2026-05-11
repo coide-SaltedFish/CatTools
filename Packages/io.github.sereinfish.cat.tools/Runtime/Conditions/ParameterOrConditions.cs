@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,9 +27,25 @@ using UnityEngine;
 namespace io.github.sereinfish.cat.tools.Conditions
 {
     [Serializable]
-    public class ParameterOrConditions
+    public class ParameterOrConditions : IEnumerable<ParameterConditions>
     {
         public List<ParameterConditions> conditions;
+        
+        public void Add(ParameterConditions condition)
+        {
+            conditions ??= new List<ParameterConditions>();
+            conditions.Add(condition);
+        }
+        
+        public IEnumerator<ParameterConditions> GetEnumerator()
+        {
+            return conditions.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return conditions.GetEnumerator();
+        }
         
         public override bool Equals(object obj)
         {
@@ -38,14 +55,30 @@ namespace io.github.sereinfish.cat.tools.Conditions
     }
     
     [Serializable]
-    public class ParameterConditions
+    public class ParameterConditions : IEnumerable<ParameterCondition>
     { 
-        public List<ParameterCondition> conditions;
+        public List<ParameterCondition> conditions = new();
+
+        public void Add(ParameterCondition condition)
+        {
+            conditions ??= new List<ParameterCondition>();
+            conditions.Add(condition);
+        }
+
+        public IEnumerator<ParameterCondition> GetEnumerator()
+        {
+            return conditions.GetEnumerator();
+        }
 
         public override bool Equals(object obj)
         {
             if (obj is not ParameterConditions parameterConditions) return false;
             return conditions.Count == parameterConditions.conditions.Count && conditions.TrueForAll(x => parameterConditions.conditions.Contains(x));
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
     
@@ -55,6 +88,11 @@ namespace io.github.sereinfish.cat.tools.Conditions
         public string name; // 参数名
         public CatAnimatorConditionRuntimeMode mode; // 参数条件
         public float value = 0f; // 参数值
+
+        public bool GetValueBool()
+        {
+            return value != 0f;
+        }
         
         public override bool Equals(object obj)
         {

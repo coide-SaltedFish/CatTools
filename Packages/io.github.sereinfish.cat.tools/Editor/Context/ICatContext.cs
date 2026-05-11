@@ -18,13 +18,31 @@
 //  */
 #endregion
 
+using Editor.Animator.BlendTree;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.context
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public interface ICatContext
     {
-       
+        public Transform AvatarRootTransform { get; }
+        public GameObject AvatarRootObject { get; }
+        
+        public ICatAnimatorController GetAnimatorController(VRCAvatarDescriptor.AnimLayerType type);
+        public VRCAvatarDescriptor GetAvatarDescriptor();
+
+        public ICatLayer CreateLayer(string name);
+        public ICatStateTransition CreateTransition();
+
+        public void AssetSave(Object asset, string name = null);
+        
+        /**
+         * 获取到指定层的 单条件 BlendTree
+         * 用于bool状态执行的动画
+         */
+        public ISingleBlendTree GetSingleBlendTree(VRCAvatarDescriptor.AnimLayerType type);
+
+        public void AfterBuild();
     }
 }

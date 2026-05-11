@@ -18,13 +18,12 @@
 //  */
 #endregion
 
-using UnityEngine;
-
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    [AddComponentMenu("CatTools/SelfConditionalToggle")]
-    public class SelfConditionalToggle : ConditionalToggle
+    public static class EditorUtils
     {
-       
+        public static bool Not(this bool b) => !b;
+        
+        public static float ToFloat(this bool b) => b ? 1f : 0f;
     }
 }
