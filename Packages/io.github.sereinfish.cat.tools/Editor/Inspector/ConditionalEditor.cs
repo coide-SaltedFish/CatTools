@@ -19,6 +19,7 @@
 #endregion
 
 using io.github.sereinfish.cat.tools.editor.inspector.ui;
+using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -27,13 +28,14 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 {
     public abstract class ConditionalEditor<T> : CatEditor where T : ConditionalBehaviour
     {
-        protected SerializedProperty ConditionsProp;
+        // protected SerializedProperty ConditionsProp;
 
         private ParameterConditionList<ConditionalBehaviour> _parameterConditionList;
+        protected T Target => (T)target;
 
         protected override void Init()
         {
-            ConditionsProp = PropGet(nameof(ConditionalBehaviour.conditions));
+            // ConditionsProp = PropGet(nameof(ConditionalBehaviour.conditions));
         }
 
         protected override void OnDraw()
@@ -52,6 +54,13 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         {
             EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.layerType)), new GUIContent("Layer类型"));
             EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.writeDefaultValues)));
+        }
+        
+        private GameObject _avatarRoot;
+        protected GameObject GetAvatarRoot()
+        {
+            _avatarRoot ??= ((T)target).gameObject.GetAvatarRoot();
+            return _avatarRoot;
         }
     }
 }

@@ -18,46 +18,31 @@
 //  */
 #endregion
 
-using System;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.inspector.ui;
-using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    [CustomEditor(typeof(ConditionalBlendShapeSetter))]
-    public class ConditionalBlendShapeSetterInspector : ConditionalEditor<ConditionalBlendShapeSetter>
+    [CustomEditor(typeof(TargetsConditionalMaterialSetter))]
+    public class TargetsConditionalMaterialSetterInspector : ConditionalEditor<TargetsConditionalMaterialSetter>
     {
-        private ShapeChangeList _shapeChangeList;
-        private SerializedProperty _shapeChangeInfosProp;
+        private MaterialSetterList _materialSetterList;
         private SerializedProperty _restoreToggleProp;
         
         protected override void Init()
         {
             base.Init();
-            // _shapeChangeInfosProp = PropGet(nameof(ConditionalBlendShapeSetter.shapeChangeInfos));
-            _restoreToggleProp = PropGet(nameof(ConditionalBlendShapeSetter.restoreToggle));
-            _shapeChangeList = new ShapeChangeList(GetAvatarRoot(), serializedObject);
+            _materialSetterList = new MaterialSetterList(GetAvatarRoot(), serializedObject);
+            _restoreToggleProp = PropGet(nameof(ConditionalMaterialSetter.restoreToggle));
         }
 
         protected override void OnDraw()
         {
             base.OnDraw();
-            
-            _shapeChangeList.DoLayout();
+            _materialSetterList.DoLayout();
             EditorGUILayout.PropertyField(_restoreToggleProp, new GUIContent("条件不满足时恢复为默认值"));
-        }
-
-        private void OnDestroy()
-        {
-            _shapeChangeList?.OnDisableWindow();
-        }
-
-        private void OnDisable()
-        {
-            _shapeChangeList?.OnDisableWindow();
         }
     }
 }
