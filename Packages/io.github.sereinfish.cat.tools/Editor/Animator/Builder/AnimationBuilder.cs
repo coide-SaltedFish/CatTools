@@ -25,7 +25,10 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
 {
     public class AnimationBuilder
     {
-        public readonly AnimationClip Clip = new AnimationClip();
+        public readonly AnimationClip Clip = new()
+        {
+            name = "Clip"
+        };
         
         public AnimationBuilder Name(string name)
         {
