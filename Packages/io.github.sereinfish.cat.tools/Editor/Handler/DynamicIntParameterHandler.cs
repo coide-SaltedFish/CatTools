@@ -18,11 +18,10 @@
 //  */
 #endregion
 
-using System.Collections.Generic;
 using System.Linq;
-using Editor.Conditions.Build;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.Conditions;
+using io.github.sereinfish.cat.tools.editor.Conditions.Build;
 using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.context.Extensions;
 using io.github.sereinfish.cat.tools.editor.utils;

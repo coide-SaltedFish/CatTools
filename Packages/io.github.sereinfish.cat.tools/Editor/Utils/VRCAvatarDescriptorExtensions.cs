@@ -18,7 +18,7 @@
 //  */
 #endregion
 
-using Editor.Parameter.Descriptor;
+using io.github.sereinfish.cat.tools.editor.Parameter.Descriptor;
 using VRC.SDK3.Avatars.Components;
 
 namespace io.github.sereinfish.cat.tools.editor.utils

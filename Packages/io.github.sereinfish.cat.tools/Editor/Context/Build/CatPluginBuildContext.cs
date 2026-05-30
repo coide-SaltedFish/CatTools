@@ -19,7 +19,7 @@
 #endregion
 
 using System.Collections.Generic;
-using Editor.Animator.BlendTree;
+using io.github.sereinfish.cat.tools.editor.Animator.BlendTree;
 using io.github.sereinfish.cat.tools.editor.utils;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;

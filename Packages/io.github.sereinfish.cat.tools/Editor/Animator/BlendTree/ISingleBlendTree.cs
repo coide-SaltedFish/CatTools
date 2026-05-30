@@ -21,7 +21,7 @@
 using io.github.sereinfish.cat.tools.Conditions;
 using UnityEngine;
 
-namespace Editor.Animator.BlendTree
+namespace io.github.sereinfish.cat.tools.editor.Animator.BlendTree
 {
     public interface ISingleBlendTree
     {
