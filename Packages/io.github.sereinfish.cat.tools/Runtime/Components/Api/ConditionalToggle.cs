@@ -24,7 +24,7 @@ namespace io.github.sereinfish.cat.tools.Components
 {
     public class ConditionalToggle : ConditionalBehaviour
     {
-        public GameObject[] targets;
+        public Transform[] targets;
         
         public bool toggle = true; // 条件满足时状态
 

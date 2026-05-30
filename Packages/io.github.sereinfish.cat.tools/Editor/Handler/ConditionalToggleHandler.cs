@@ -34,8 +34,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
     {
         public override void Execute(ICatContext context, ConditionalToggle entity)
         {
-            if (entity is SelfConditionalToggle) entity.targets = new[] { entity.gameObject };
-            var handlerTargets = new HashSet<GameObject>(entity.targets);
+            if (entity is SelfConditionalToggle) entity.targets = new[] { entity.gameObject.transform };
+            var handlerTargets = new HashSet<Transform>(entity.targets);
             
             var controller = context.GetAnimatorController(entity.layerType); // 获取动画控制器
             var layer = ICatLayer
