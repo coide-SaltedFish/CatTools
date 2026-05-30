@@ -18,7 +18,7 @@
 //  */
 #endregion
 
-using Editor.Animator.BlendTree;
+using io.github.sereinfish.cat.tools.editor.Animator.BlendTree;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 

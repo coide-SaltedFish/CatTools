@@ -20,9 +20,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using BestHTTP.SecureProtocol.Org.BouncyCastle.Security;
-using Editor.Animator.BlendTree;
 using io.github.sereinfish.cat.tools.Conditions;
+using io.github.sereinfish.cat.tools.editor.Animator.BlendTree;
 using io.github.sereinfish.cat.tools.editor.utils;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.animator;

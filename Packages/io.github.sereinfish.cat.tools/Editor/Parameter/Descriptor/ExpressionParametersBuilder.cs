@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
-namespace Editor.Parameter.Descriptor
+namespace io.github.sereinfish.cat.tools.editor.Parameter.Descriptor
 {
     /// <summary>
     /// 用来对 ExpressionParameters 进行批量构建操作

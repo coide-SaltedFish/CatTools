@@ -24,7 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Editor.Animator.BlendTree;
+using io.github.sereinfish.cat.tools.editor.Animator.BlendTree;
 using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
 using UnityEditor.Animations;

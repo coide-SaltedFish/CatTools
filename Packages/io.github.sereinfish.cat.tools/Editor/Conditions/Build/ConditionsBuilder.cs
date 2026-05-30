@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using io.github.sereinfish.cat.tools.Conditions;
 
-namespace Editor.Conditions.Build
+namespace io.github.sereinfish.cat.tools.editor.Conditions.Build
 {
     public class ConditionsBuilder
     {
