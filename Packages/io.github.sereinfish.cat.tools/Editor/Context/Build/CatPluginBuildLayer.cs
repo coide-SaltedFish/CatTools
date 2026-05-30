@@ -33,7 +33,17 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         private readonly VirtualStateMachine _stateMachine;
         
         public string Name { get => _layer.Name; set => _layer.Name = value; }
-        public ICatStateMachine StateMachine => new CatPluginBuildStateMachine(this, _layer.StateMachine);
+        
+        private CatPluginBuildStateMachine _catPluginBuildStateMachine;
+
+        public ICatStateMachine StateMachine
+        {
+            get
+            {
+                _catPluginBuildStateMachine ??= new CatPluginBuildStateMachine(this, _layer.StateMachine);
+                return _catPluginBuildStateMachine;
+            }
+        }
 
         private ICatState _defaultState;
         public ICatState DefaultState

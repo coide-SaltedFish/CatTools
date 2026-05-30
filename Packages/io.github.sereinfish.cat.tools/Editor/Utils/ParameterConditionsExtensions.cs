@@ -218,5 +218,48 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 onState.Transitions = onState.Transitions.Add(tOffState);
             }
         }
+
+        public static void CreateAnyStateConditionsTransition(this ParameterOrConditions conditions,
+            ICatContext context, ICatAnimatorController controller, ICatLayer layer, ICatState state, float? exitTime = null)
+        {
+            // 检查参数
+            foreach (var conditionsEntry in conditions)
+            {
+                foreach (var condition in conditionsEntry.conditions)
+                {
+                    var mode = condition.mode.ToEdit();
+                    controller.AddParameterIfNot(new AnimatorControllerParameter
+                    {
+                        name = condition.name,
+                        type = mode is AnimatorConditionMode.If or AnimatorConditionMode.IfNot
+                            ? AnimatorControllerParameterType.Bool
+                            : AnimatorControllerParameterType.Float,
+                        defaultFloat = 0f,
+                        defaultBool = false,
+                        defaultInt = 0
+                    });
+                }
+            }
+            
+            foreach (var entry in conditions)
+            {
+                var transition = ICatStateTransition.Create(context);
+                transition.SetDestination(state);
+                transition.ExitTime = exitTime;
+                transition.Duration = 0;
+                
+                foreach (var condition in entry.conditions)
+                {
+                    transition.Conditions = transition.Conditions.Add(new AnimatorCondition
+                    {
+                        parameter = condition.name,
+                        mode = condition.GetMode(),
+                        threshold = Convert.ToSingle(condition.value)
+                    });
+                }
+
+                layer.StateMachine.AnyStateTransitions = layer.StateMachine.AnyStateTransitions.Add(transition);
+            }
+        }
     }
 }

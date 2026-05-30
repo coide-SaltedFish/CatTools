@@ -31,7 +31,17 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
         private readonly AnimatorStateMachine _stateMachine;
         
         public string Name { get => _layer.name; set => _layer.name = value; }
-        public ICatStateMachine StateMachine => new CatBakeStateMachine(_stateMachine);
+        
+        private CatBakeStateMachine _catStateMachine;
+
+        public ICatStateMachine StateMachine
+        {
+            get
+            {
+                _catStateMachine ??= new CatBakeStateMachine(_stateMachine);
+                return _catStateMachine;
+            }
+        }
         
         private ICatState _defaultState;
 

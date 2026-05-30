@@ -18,41 +18,31 @@
 //  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using UnityEditor;
+using VRC.SDK3.Avatars.Components;
+using VRC.SDKBase;
 
-namespace io.github.sereinfish.cat.tools.editor.inspector
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    public static class VRCAvatarParameterDriverExtensions
     {
-        public Dictionary<string, SerializedProperty> Props { get; } = new();
+        public static void AddParameterDriver(this VRCAvatarParameterDriver driver, VRC_AvatarParameterDriver.Parameter parameter)
+        {
+            driver.parameters.Add(parameter);
+        }
+
+        public static void AddParameterDriverSet(this VRCAvatarParameterDriver driver, string name, float value)
+        {
+            driver.AddParameterDriver(new VRC_AvatarParameterDriver.Parameter
+            {
+                name = name,
+                value = value,
+                type = VRC_AvatarParameterDriver.ChangeType.Set
+            });
+        }
         
-        public SerializedProperty PropGet(string pName)
+        public static void AddParameterDriverSet(this VRCAvatarParameterDriver driver, string name, bool value)
         {
-            return PropGet(serializedObject, pName);
+            driver.AddParameterDriverSet(name, value ? 1f : 0f);
         }
-        
-        public SerializedProperty PropGet(SerializedObject so, string pName)
-        {
-            if (Props.TryGetValue(pName, out var get)) return get;
-            
-            return Props[pName] = so.FindProperty(pName);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-            OnDraw();
-            serializedObject.ApplyModifiedProperties();
-        }
-
-        private void OnEnable()
-        {
-            Init();
-        }
-
-        protected abstract void OnDraw();
-        protected abstract void Init();
     }
 }

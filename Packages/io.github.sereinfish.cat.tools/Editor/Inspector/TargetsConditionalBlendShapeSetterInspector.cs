@@ -27,8 +27,8 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    [CustomEditor(typeof(ConditionalBlendShapeSetter))]
-    public class ConditionalBlendShapeSetterInspector : ConditionalEditor<ConditionalBlendShapeSetter>
+    [CustomEditor(typeof(TargetsConditionalBlendShapeSetter))]
+    public class TargetsConditionalBlendShapeSetterInspector : ConditionalEditor<TargetsConditionalBlendShapeSetter>
     {
         private ShapeChangeList _shapeChangeList;
         private SerializedProperty _shapeChangeInfosProp;

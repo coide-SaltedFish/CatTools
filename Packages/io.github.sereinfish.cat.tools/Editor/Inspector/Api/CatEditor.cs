@@ -18,49 +18,50 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.inspector.ui;
+using System;
+using System.Collections.Generic;
 using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    public abstract class ConditionalEditor<T> : CatEditor where T : ConditionalBehaviour
+    public abstract class CatEditor : UnityEditor.Editor
     {
-        // protected SerializedProperty ConditionsProp;
-
-        private ParameterConditionList<ConditionalBehaviour> _parameterConditionList;
-        protected T Target => (T)target;
-
-        protected override void Init()
+        public Dictionary<string, SerializedProperty> Props { get; } = new();
+        
+        public SerializedProperty PropGet(string pName)
         {
-            // ConditionsProp = PropGet(nameof(ConditionalBehaviour.conditions));
+            return PropGet(serializedObject, pName);
+        }
+        
+        public SerializedProperty PropGet(SerializedObject so, string pName)
+        {
+            if (Props.TryGetValue(pName, out var get)) return get;
+            
+            return Props[pName] = so.FindProperty(pName);
         }
 
-        protected override void OnDraw()
+        public override void OnInspectorGUI()
         {
-            DrawLayer();
-            DrawConditions();
+            serializedObject.Update();
+            OnDraw();
+            serializedObject.ApplyModifiedProperties();
         }
 
-        protected void DrawConditions()
+        private void OnEnable()
         {
-            _parameterConditionList ??= new ParameterConditionList<ConditionalBehaviour>(serializedObject);
-            _parameterConditionList.DoLayout();
-        }
-
-        protected void DrawLayer()
-        {
-            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.layerType)), new GUIContent("Layer类型"));
-            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.writeDefaultValues)));
+            Init();
         }
         
         private GameObject _avatarRoot;
-        protected GameObject GetAvatarRoot()
+        protected GameObject GetAvatarRoot<T>() where T : Component
         {
             _avatarRoot ??= ((T)target).gameObject.GetAvatarRoot();
             return _avatarRoot;
         }
+
+        protected abstract void OnDraw();
+        protected abstract void Init();
     }
 }

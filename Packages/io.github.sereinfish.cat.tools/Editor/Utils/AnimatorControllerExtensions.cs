@@ -65,5 +65,27 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             controller.Parameters = controller.Parameters.Remove(parameter.name);
             controller.Parameters = controller.Parameters.Add(parameter.name, parameter);
         }
+        
+        public static void AddParameterIfNot(this ICatAnimatorController controller,
+            string name, AnimatorControllerParameterType type, float defaultValue = 0f)
+        {
+            controller.AddParameterIfNot(new AnimatorControllerParameter
+            {
+                name = name,
+                type = type,
+                defaultFloat = defaultValue
+            });
+        }
+        
+        public static void AddParameterIfNot(this ICatAnimatorController controller,
+            string name, AnimatorControllerParameterType type, bool defaultValue = false)
+        {
+            controller.AddParameterIfNot(new AnimatorControllerParameter
+            {
+                name = name,
+                type = type,
+                defaultBool = defaultValue
+            });
+        }
     }
 }
