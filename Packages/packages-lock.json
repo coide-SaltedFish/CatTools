@@ -1,11 +1,5 @@
 {
   "dependencies": {
-    "cat_tools": {
-      "version": "file:io.github.sereinfish.cat.tools",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.unity.ai.navigation": {
       "version": "1.1.5",
       "depth": 0,
@@ -207,6 +201,12 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.0.2"
       }
+    },
+    "io.github.sereinfish.cat.tools": {
+      "version": "file:io.github.sereinfish.cat.tools",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "jp.lilxyzw.anythingreplacer": {
       "version": "file:jp.lilxyzw.anythingreplacer",

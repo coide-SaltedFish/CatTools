@@ -54,8 +54,8 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             get => _anyStateTransitions;
             set
             {
-                _stateMachine.AnyStateTransitions = value.Select(x => x.GetTransition<VirtualStateTransition>()).ToImmutableList();
                 _anyStateTransitions = value;   
+                _stateMachine.AnyStateTransitions = _anyStateTransitions.Select(x => x.GetTransition<VirtualStateTransition>()).ToImmutableList();
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿#region LICENSE
-
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -17,7 +16,6 @@
 //  * You should have received a copy of the GNU General Public License
 //  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //  */
-
 #endregion
 
 using System.Collections.Generic;
@@ -28,27 +26,50 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    [CustomEditor(typeof(TargetsConditionalToggle))]
-    public class TargetsConditionalToggleInspector : ConditionalEditor<TargetsConditionalToggle>
+    [CustomEditor(typeof(TargetsConditionalAnimation))]
+    public class TargetsConditionalAnimationInspector : ConditionalEditor<TargetsConditionalAnimation>
     {
-        private SerializedProperty _defaultActiveProp;
-        private SerializedProperty _reverseToggleProp;
-
-        private ReorderableList _targetsList;
         private SerializedProperty _targetsProp;
-        private SerializedProperty _toggleProp;
-        private SerializedProperty _isSetDefaultActiveProp;
-
+        private SerializedProperty _animationsProp;
+        private ReorderableList _list;
+        private ReorderableList _targetsList;
+        
         protected override void Init()
         {
             base.Init();
+            _targetsProp = PropGet(nameof(ConditionalAnimation.targets));
+            _animationsProp = PropGet(nameof(ConditionalAnimation.animations));
+            
+            InitList();
+        }
 
-            _toggleProp = PropGet(nameof(TargetsConditionalToggle.toggle));
-            _reverseToggleProp = PropGet(nameof(TargetsConditionalToggle.reverseToggle));
-            _defaultActiveProp = PropGet(nameof(TargetsConditionalToggle.defaultActive));
-            _targetsProp = PropGet(nameof(TargetsConditionalToggle.targets));
-            _isSetDefaultActiveProp = PropGet(nameof(TargetsConditionalToggle.isSetDefaultActive));
+        protected override void OnDraw()
+        {
+            base.OnDraw();
+            
+            var listRect = GUILayoutUtility.GetRect(0, _targetsList.GetHeight(), GUILayout.ExpandWidth(true));
+            _targetsList.DoList(listRect);
+            HandleDragAndDrop(listRect);
+            
+            _list.DoLayoutList();
+        }
 
+        private void InitList()
+        {
+            _list = new ReorderableList(serializedObject, _animationsProp, true, false, true, true)
+            {
+                drawElementCallback = DrawElement,
+                elementHeightCallback = _ => (EditorGUIUtility.singleLineHeight + 2f) * 2 + EditorGUIUtility.standardVerticalSpacing,
+                onAddCallback = list =>
+                {
+                    var prop = list.serializedProperty;
+                    prop.InsertArrayElementAtIndex(prop.arraySize);
+                    // 给新元素设置默认值
+                    var newElem = prop.GetArrayElementAtIndex(prop.arraySize - 1);
+                    newElem.FindPropertyRelative(nameof(ConditionalAnimation.MergeAnimation.overrideTargetPath)).boolValue = true;
+                    list.index = prop.arraySize - 1;
+                }
+            };
             _targetsList = new ReorderableList(serializedObject, _targetsProp, true, true, true, true)
             {
                 drawHeaderCallback = rect => { EditorGUI.LabelField(rect, "目标对象列表"); },
@@ -64,27 +85,38 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 elementHeightCallback = _ => EditorGUIUtility.singleLineHeight + 2f
             };
         }
-
-        protected override void OnDraw()
+        
+        private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
-            base.OnDraw();
-            var listRect = GUILayoutUtility.GetRect(0, _targetsList.GetHeight(), GUILayout.ExpandWidth(true));
-            _targetsList.DoList(listRect);
-            HandleDragAndDrop(listRect);
+            var lineH = EditorGUIUtility.singleLineHeight;
+            var spacing = EditorGUIUtility.standardVerticalSpacing;
 
-            EditorGUILayout.PropertyField(_toggleProp, new GUIContent("条件满足时状态"));
-            EditorGUILayout.PropertyField(_reverseToggleProp, new GUIContent("条件不满足时是否反转状态"));
-            EditorGUILayout.PropertyField(_isSetDefaultActiveProp, new GUIContent("构建时设置默认状态"));
-            if (_isSetDefaultActiveProp.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.PropertyField(_defaultActiveProp, new GUIContent("构建时将开关状态设置为"));
-                EditorGUILayout.EndVertical();
-                EditorGUI.indentLevel--;
-            }
+            var prop = _animationsProp.GetArrayElementAtIndex(index);
+            
+            var clip = prop.FindPropertyRelative(nameof(ConditionalAnimation.MergeAnimation.clip));
+            var mergeType = prop.FindPropertyRelative(nameof(ConditionalAnimation.MergeAnimation.mergeType));
+            var overrideTargetPath = prop.FindPropertyRelative(nameof(ConditionalAnimation.MergeAnimation.overrideTargetPath));
+            var applyToChildren = prop.FindPropertyRelative(nameof(ConditionalAnimation.MergeAnimation.applyToChildren));
+            
+            var x = rect.x;
+            var y = rect.y + 1f;
+            // 第一行，动画选择 及 合并类型
+            EditorGUI.PropertyField(new Rect(x, y, rect.width * 0.65f, lineH), clip, GUIContent.none);
+            x += rect.width * 0.65f + spacing;
+            EditorGUI.PropertyField(new Rect(x, y, rect.width * 0.35f, lineH), mergeType, GUIContent.none);
+            
+            x = rect.x;
+            y += lineH + 2f + spacing;
+            // 第二行 是否重写目标路径 是否包含所有子对象
+            EditorGUI.LabelField(new Rect(x, y, 80f, lineH), "重写目标路径");
+            x += 80f + spacing;
+            EditorGUI.PropertyField(new Rect(x, y, 20f, lineH), overrideTargetPath, GUIContent.none);
+            x += 20f + spacing;
+            EditorGUI.LabelField(new Rect(x, y, 104f, lineH), "应用到所有子对象");
+            x += 104f + spacing;
+            EditorGUI.PropertyField(new Rect(x, y, 20f, lineH), applyToChildren, GUIContent.none);
         }
-
+        
         private void HandleDragAndDrop(Rect dropArea)
         {
             var evt = Event.current;

@@ -37,17 +37,12 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             if (entity is SelfConditionalToggle) entity.targets = new[] { entity.gameObject };
             var handlerTargets = new HashSet<GameObject>(entity.targets);
             
-            var controller = context.GetAnimatorController(entity.layerType);
-            var layer = ICatLayer.Create(context, $"Toggle/{StringHelper.GetRandomString()}");
-            controller.AddLayer(layer);
-            
+            var controller = context.GetAnimatorController(entity.layerType); // 获取动画控制器
+            var layer = ICatLayer
+                .Create(context, $"Toggle/{StringHelper.GetRandomString()}")
+                .AddToController(controller); // 创建层
             // 设置目标默认状态
-            if (entity.isSetDefaultActive)
-            {
-                entity.gameObject.SetActive(entity.defaultActive);
-            }
-            
-            
+            if (entity.isSetDefaultActive) entity.gameObject.SetActive(entity.defaultActive);
             // 构建动画
             var clipOn = AnimationBuilder.Create()
                 .Run(builder =>

@@ -18,32 +18,32 @@
 //  */
 #endregion
 
-using System;
+using UnityEditor;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.Components
+namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    [AddComponentMenu("CatTools/ConditionalBlendShapeSetter")]
-    public class ConditionalBlendShapeSetter : ConditionalBehaviour
+    public class AnimLayerEditor<T> : CatEditor where T : CatAnimLayerBehaviour
     {
-        public GameObject[] targets; // 保留，一点用没有
-        public ShapeChangeInfo[] shapeChangeInfos;
-        public bool restoreToggle = false; // 当条件不成立时，强制复原为默认值
-        
-        [Serializable]
-        public enum ShapeChangeType
+        protected override void OnDraw()
         {
-            // Delete,
-            Set
+            DrawLayer();
         }
         
-        [Serializable]
-        public struct ShapeChangeInfo
+        protected void DrawLayer()
         {
-            public Transform target;
-            public string shapeName;
-            public ShapeChangeType changeType;
-            public float value;
+            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.layerType)), new GUIContent("Layer类型"));
+            EditorGUILayout.PropertyField(PropGet(nameof(CatAnimLayerBehaviour.writeDefaultValues)));
+        }
+
+        protected override void Init()
+        {
+            
+        }
+        
+        protected GameObject GetAvatarRoot()
+        {
+            return GetAvatarRoot<T>();
         }
     }
 }

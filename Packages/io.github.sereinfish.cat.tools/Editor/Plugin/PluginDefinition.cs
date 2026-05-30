@@ -34,8 +34,18 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
         
         protected override void Configure()
         {
-            var seq = InPhase(BuildPhase.Transforming);
-            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            // 克隆全部动画控制器
+            InPhase(BuildPhase.Resolving).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            {
+                s.Run("Clone animators", _ => { });
+            });
+            InPhase(BuildPhase.Transforming).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            {
+                // 克隆参数列表
+                s.Run(CloneExpressionParametersPass.Instance);
+            });
+            // 执行
+            InPhase(BuildPhase.Transforming).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run(ComponentHandlerPass.Instance);
             });
