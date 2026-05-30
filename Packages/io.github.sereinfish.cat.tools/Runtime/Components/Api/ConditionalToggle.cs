@@ -32,6 +32,6 @@ namespace io.github.sereinfish.cat.tools.Components
         
         public bool defaultActive = false; // 默认开关状态
 
-        public bool reverseToggle = false; // 当不成立时，反转开关状态
+        public bool reverseToggle = true; // 当不成立时，反转开关状态
     }
 }
