@@ -38,14 +38,10 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
             InPhase(BuildPhase.Resolving).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run("Clone animators", _ => { });
-            });
-            InPhase(BuildPhase.Transforming).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
-            {
-                // 克隆参数列表
                 s.Run(CloneExpressionParametersPass.Instance);
             });
             // 执行
-            InPhase(BuildPhase.Transforming).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            InPhase(BuildPhase.Resolving).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run(ComponentHandlerPass.Instance);
             });
