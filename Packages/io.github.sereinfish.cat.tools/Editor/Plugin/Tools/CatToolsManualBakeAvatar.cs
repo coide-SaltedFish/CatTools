@@ -73,6 +73,11 @@ namespace io.github.sereinfish.cat.tools.editor.plugin.Tools
                 }
             }
             catContext.AfterBuild();
+            
+            foreach (var comp in avatar.GetComponentsInChildren<CatAvatarComponent>(true))
+            {
+                Object.DestroyImmediate(comp);
+            }
         }
     }
 }

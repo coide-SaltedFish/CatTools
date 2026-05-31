@@ -59,7 +59,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         public static T[] GetComponentsInChildrenTraverseByHierarchy<T>(this Transform root, bool includeInactive = false)
         {
             if (root == null)
-                return System.Array.Empty<T>();
+                return Array.Empty<T>();
 
             var results = new List<T>();
 
@@ -68,6 +68,9 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 // 如果不包含 inactive，则跳过不活跃的节点
                 if (!includeInactive && !t.gameObject.activeInHierarchy)
                     continue;
+                
+                // 跳过 EditorOnly 组件
+                if (t.CompareTag("EditorOnly")) continue;
 
                 // 获取当前节点上的所有 T 组件（顺序与 Inspector 中组件顺序一致）
                 var comps = t.GetComponents<T>();
