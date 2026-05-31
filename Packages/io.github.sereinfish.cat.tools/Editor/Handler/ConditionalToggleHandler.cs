@@ -25,6 +25,8 @@ using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
 using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.localization;
 using UnityEngine;
 using PropertyName = io.github.sereinfish.cat.tools.editor.animator.builder.PropertyName;
 
@@ -35,7 +37,25 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         public override void Execute(ICatContext context, ConditionalToggle entity)
         {
             if (entity is SelfConditionalToggle) entity.targets = new[] { entity.gameObject.transform };
-            var handlerTargets = new HashSet<Transform>(entity.targets);
+            if (entity.targets == null || entity.targets.Length == 0 || entity.targets.All(t => t == null))
+            {
+                ErrorReport.ReportError(new Localizer(
+                    "en-US",
+                    () => new List<LocalizationAsset>()),
+                    ErrorSeverity.NonFatal,
+                    "io.github.sereinfish.cat.tools.editor.handler.ConditionalToggleHandler",
+                    entity.transform,
+                    entity.targets
+                    );
+                return;
+            }
+            
+            var handlerTargets = new HashSet<Transform>();
+            foreach (var target in entity.targets)
+            {
+                if (target == null) continue;
+                handlerTargets.Add(target);
+            }
             
             var controller = context.GetAnimatorController(entity.layerType); // 获取动画控制器
             var layer = ICatLayer
