@@ -168,7 +168,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         {
             
             context.GetAvatarDescriptor().ExpressionParameters()
-                .Add(catDynamicInt.name, VRCExpressionParameters.ValueType.Int, catDynamicInt.defaultValue, false) // 注册 Int
+                .Add(catDynamicInt.name, VRCExpressionParameters.ValueType.Int, catDynamicInt.defaultValue, false, false) // 注册 Int
                 .ForEach(bitParameters, (builder, bitParameter) =>
                 {
                     // 注册 Bit
