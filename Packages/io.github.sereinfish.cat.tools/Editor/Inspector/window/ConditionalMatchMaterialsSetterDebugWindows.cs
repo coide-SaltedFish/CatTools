@@ -18,7 +18,9 @@
 //  */
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
@@ -31,6 +33,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
         private ConditionalMatchMaterialsSetter _target;
         private Vector2 _scrollPos;
         private Dictionary<Material, List<Material>> _data;
+        private readonly Dictionary<Material, bool> _foldoutStates = new();
+        private readonly Dictionary<Material, Transform[]> _transformStates = new();
         
         private ConditionalMatchMaterialsSetterDebugWindows()
         {
@@ -106,13 +110,59 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                     $"匹配到多个材质（{targets.Length} 个），该材质替换将被忽略。",
                     MessageType.Warning);
             }
+            
+            // Foldout
+            _foldoutStates.TryAdd(source, false);
+
+            _foldoutStates[source] = EditorGUILayout.Foldout(
+                _foldoutStates[source],
+                $"引用对象列表",
+                true);
+
+            if ( _foldoutStates[source])
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+                // 这里替换成你的 Transform 列表
+                if (!_transformStates.ContainsKey(source))
+                {
+                    _transformStates[source] = GetTransforms(source);
+                }
+                
+                foreach (var transform in _transformStates[source])
+                {
+                    EditorGUILayout.ObjectField(
+                        transform,
+                        typeof(Transform),
+                        true,
+                        GUILayout.ExpandWidth(true));
+                }
+
+                EditorGUILayout.EndVertical();
+            }
+
+            
             EditorGUILayout.Space(4);
+        }
+        
+        private Transform[] GetTransforms(Material source)
+        {
+            if (_target == null || source == null)
+            {
+                return Array.Empty<Transform>();
+            }
+
+            return (from skinnedMeshRenderer in _target.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                where skinnedMeshRenderer.sharedMaterials.Any(sharedMaterial => sharedMaterial == source)
+                select skinnedMeshRenderer.transform)
+                .ToArray();
         }
         
         private void RefreshData()
         {
             // 执行再次扫描，更新材质列表数据
             _data = new Dictionary<Material, List<Material>>();
+            _foldoutStates.Clear();
             foreach (var material in _target.gameObject.FindChildMaterials())
             {
                 var targets = _target.FindTargetsMaterial(material);
