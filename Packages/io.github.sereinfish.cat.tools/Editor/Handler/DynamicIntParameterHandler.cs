@@ -114,7 +114,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var initState = layer.AddState("Init", position:new Vector3(0, 200));
             initState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
             {
-                driver.AddParameterDriverSet(catDynamicInt.name, catDynamicInt.defaultValue);
+                driver.AddParameterDriverSet(catDynamicInt.name, 0f); // 初始值
                 driver.AddParameterDriverSet($"IsInit/{catDynamicInt.name}", true);
             });
 
@@ -169,6 +169,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             
             context.GetAvatarDescriptor().ExpressionParameters()
                 .Add(catDynamicInt.name, VRCExpressionParameters.ValueType.Int, catDynamicInt.defaultValue, false, false) // 注册 Int
+                .Add($"IsInit/{catDynamicInt.name}", VRCExpressionParameters.ValueType.Bool, 0, false, false)
                 .ForEach(bitParameters, (builder, bitParameter) =>
                 {
                     // 注册 Bit
