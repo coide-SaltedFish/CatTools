@@ -163,6 +163,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             // 执行再次扫描，更新材质列表数据
             _data = new Dictionary<Material, List<Material>>();
             _foldoutStates.Clear();
+            _transformStates.Clear();
             foreach (var material in _target.gameObject.FindChildMaterials())
             {
                 var targets = _target.FindTargetsMaterial(material);
