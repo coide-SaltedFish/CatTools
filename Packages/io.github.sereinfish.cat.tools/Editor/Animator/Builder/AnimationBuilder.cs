@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.animator.builder
@@ -41,6 +42,13 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
             var curveBuilder = new AnimationCurveBuilder();
             action(curveBuilder);
             Clip.SetCurve(path, typeof(GameObject), "m_IsActive", curveBuilder.Build());
+            return this;
+        }
+        
+        public AnimationBuilder SetObjectReferenceCurve(string path, Type type, string propertyName, ObjectReferenceKeyframe[] keyframes)
+        {
+            var binding = EditorCurveBinding.PPtrCurve(path, type,propertyName);
+            AnimationUtility.SetObjectReferenceCurve(Clip, binding, keyframes);
             return this;
         }
 
