@@ -351,7 +351,6 @@ namespace io.github.sereinfish.cat.tools.Tools.AnimBindingChange
                     return binding;
                 }
                 var newPath = target.GetRelativePath(rootTransform);
-                Debug.LogWarning($"New Path: {newPath}");
                 binding.path = newPath;
                 return binding;
             }

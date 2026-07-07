@@ -31,31 +31,6 @@ namespace io.github.sereinfish.cat.tools.Tools.AnimBindingChange
         public static string GetRelativePath(this Transform target, Transform root)
         {
             return AnimationUtility.CalculateTransformPath(target, root);
-            // if (root == null) throw new ArgumentNullException(nameof(root));
-            // if (target == null) throw new ArgumentNullException(nameof(target));
-            //
-            // // 如果就是同一个 Transform，报错
-            // if (root == target) 
-            //     throw new ArgumentException("Transform cannot be relative to itself.");
-            //
-            // // 从 target 向上收集名称
-            // var names = new List<string>();
-            // var current = target;
-            // while (current != null && current != root)
-            // {
-            //     names.Add(current.name);
-            //     current = current.parent;
-            // }
-            //
-            // // 如果走到了顶层还没遇到 root，说明不是子集
-            // if (current != root)
-            //     throw new InvalidOperationException($"Transform '{target.name}' is not a child of '{root.name}'.");
-            //
-            // // 反转顺序：root 下的第一层子先出现在前面
-            // names.Reverse();
-            //
-            // // 拼接成 "child/grandchild/..." 形式
-            // return string.Join("/", names);
         }
     }
 }
