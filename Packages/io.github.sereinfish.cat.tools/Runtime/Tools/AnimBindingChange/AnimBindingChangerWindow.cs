@@ -74,7 +74,10 @@ namespace io.github.sereinfish.cat.tools.Tools.AnimBindingChange
 
             foreach (var binding in curveBindingsDataList.Values)
             {
-                CurveBindingsItem(binding);
+                if (binding.isObjIsActive || binding.isBlendShape)
+                {
+                    CurveBindingsItem(binding);   
+                }
             }
 
             EditorGUILayout.EndScrollView();
