@@ -18,35 +18,29 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.inspector.ui;
-using io.github.sereinfish.cat.tools.editor.utils;
+using io.github.sereinfish.cat.tools.Components;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    public abstract class ConditionalEditor<T> : AnimLayerEditor<T> where T : ConditionalBehaviour
+    [CustomEditor(typeof(LightController))]
+    public class LightControllerInspector : CatEditor
     {
-        // protected SerializedProperty ConditionsProp;
-
-        private ParameterConditionList<ConditionalBehaviour> _parameterConditionList;
-        protected T Target => (T)target;
-
+        private SerializedProperty _controllerParameterName;
+        private SerializedProperty _includeChildren;
+        
         protected override void Init()
         {
-            // ConditionsProp = PropGet(nameof(ConditionalBehaviour.conditions));
+            _controllerParameterName = PropGet(nameof(LightController.controllerParameterName));
+            _includeChildren = PropGet(nameof(LightController.includeChildren));
         }
-
+        
         protected override void OnDraw()
         {
-            DrawConditions();
-        }
-
-        protected void DrawConditions()
-        {
-            _parameterConditionList ??= new ParameterConditionList<ConditionalBehaviour>(serializedObject);
-            _parameterConditionList.DoLayout();
+            EditorGUILayout.PropertyField(_controllerParameterName, new GUIContent("控制参数名称"));
+            EditorGUILayout.HelpBox("控制参数（Float）需要手动注册，该组件不对参数槽进行操作", MessageType.Info);
+            EditorGUILayout.PropertyField(_includeChildren, new GUIContent("包含子级"));
         }
     }
 }

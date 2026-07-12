@@ -37,11 +37,17 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
             return this;
         }
 
+        public AnimationBuilder FrameRate(float frameRate)
+        {
+            Clip.frameRate = frameRate;
+            return this;
+        }
+
         public AnimationBuilder SetCurve(string path, Type type, string propertyName, Action<AnimationCurveBuilder> action)
         {
-            var curveBuilder = new AnimationCurveBuilder();
+            var curveBuilder = new AnimationCurveBuilder(Clip.frameRate);
             action(curveBuilder);
-            Clip.SetCurve(path, typeof(GameObject), "m_IsActive", curveBuilder.Build());
+            Clip.SetCurve(path, type, propertyName, curveBuilder.Build());
             return this;
         }
         

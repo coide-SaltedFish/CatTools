@@ -18,7 +18,6 @@
 //  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
@@ -26,7 +25,7 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
-    public abstract class CatEditor : UnityEditor.Editor
+    public abstract class CatEditor : Editor
     {
         public Dictionary<string, SerializedProperty> Props { get; } = new();
         
@@ -45,6 +44,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+                
             OnDraw();
             serializedObject.ApplyModifiedProperties();
         }

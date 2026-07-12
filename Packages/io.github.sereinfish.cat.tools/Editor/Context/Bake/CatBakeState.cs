@@ -32,7 +32,16 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
         public AnimationClip Motion { get => _state.motion as AnimationClip; set => _state.motion = value; }
         public string Name { get => _state.name; set => _state.name = value; }
         public bool WriteDefaultValues { get => _state.writeDefaultValues; set => _state.writeDefaultValues = value; }
-        
+        public float CycleOffset { get => _state.cycleOffset; set => _state.cycleOffset = value; }
+        public string CycleOffsetParameter { get => _state.cycleOffsetParameter; set => _state.cycleOffsetParameter = value; }
+        public bool IKOnFeet { get => _state.iKOnFeet; set => _state.iKOnFeet = value; }
+        public bool Mirror { get => _state.mirror; set => _state.mirror = value; }
+        public string MirrorParameter { get => _state.mirrorParameter; set => _state.mirrorParameter = value; }
+        public float Speed { get => _state.speed; set => _state.speed = value; }
+        public string SpeedParameter { get => _state.speedParameter; set => _state.speedParameter = value; }
+        public string Tag { get => _state.tag; set => _state.tag = value; }
+        public string TimeParameter { get => _state.timeParameter; set => _state.timeParameter = value; }
+
         private ImmutableList<ICatStateTransition> _transitions = ImmutableList<ICatStateTransition>.Empty;
         public ImmutableList<ICatStateTransition> Transitions
         {

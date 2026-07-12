@@ -35,6 +35,18 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         public string Name { get => _state.Name; set => _state.Name = value; }
         public bool WriteDefaultValues { get => _state.WriteDefaultValues; set => _state.WriteDefaultValues = value; }
         
+        public float CycleOffset { get => _state.CycleOffset; set => _state.CycleOffset = value; }
+        
+        public string CycleOffsetParameter { get => _state.CycleOffsetParameter; set => _state.CycleOffsetParameter = value; }
+        
+        public bool IKOnFeet { get => _state.IKOnFeet; set => _state.IKOnFeet = value; }
+        public bool Mirror { get => _state.Mirror; set => _state.Mirror = value; }
+        public string MirrorParameter { get => _state.MirrorParameter; set => _state.MirrorParameter = value; }
+        public float Speed { get => _state.Speed; set => _state.Speed = value; }
+        public string SpeedParameter { get => _state.SpeedParameter; set => _state.SpeedParameter = value; }
+        public string Tag { get => _state.Tag; set => _state.Tag = value; }
+        public string TimeParameter { get => _state.TimeParameter; set => _state.TimeParameter = value; }
+        
         private ImmutableList<ICatStateTransition> _transitions = ImmutableList<ICatStateTransition>.Empty;
         public ImmutableList<ICatStateTransition> Transitions
         {

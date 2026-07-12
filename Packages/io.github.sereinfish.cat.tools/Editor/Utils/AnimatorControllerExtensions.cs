@@ -78,12 +78,12 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         }
         
         public static void AddParameterIfNot(this ICatAnimatorController controller,
-            string name, AnimatorControllerParameterType type, bool defaultValue = false)
+            string name, bool defaultValue)
         {
             controller.AddParameterIfNot(new AnimatorControllerParameter
             {
                 name = name,
-                type = type,
+                type = AnimatorControllerParameterType.Bool,
                 defaultBool = defaultValue
             });
         }

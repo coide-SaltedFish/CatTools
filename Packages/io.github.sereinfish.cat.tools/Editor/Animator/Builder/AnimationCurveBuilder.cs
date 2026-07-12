@@ -26,10 +26,32 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
     public class AnimationCurveBuilder
     {
         private readonly AnimationCurve _curve = new AnimationCurve();
+        private float _frameRate;
+
+        public AnimationCurveBuilder(){}
+
+        public AnimationCurveBuilder(float frameRate)
+        {
+            _frameRate = frameRate;
+        }
         
         public AnimationCurveBuilder AddKey(Keyframe keyframe)
         {
             _curve.AddKey(keyframe);
+            return this;
+        }
+        
+        public AnimationCurveBuilder AddKey(float time, float value, float inTangent = 0, float outTangent = 0, float inWeight = 0, float outWeight = 0)
+        {
+            var ft = time / _frameRate;
+            
+            _curve.AddKey(new Keyframe(ft, value, inTangent, outTangent, inWeight, outWeight));
+            return this;
+        }
+        
+        public AnimationCurveBuilder SetFps(int fps)
+        {
+            _frameRate = fps;
             return this;
         }
         

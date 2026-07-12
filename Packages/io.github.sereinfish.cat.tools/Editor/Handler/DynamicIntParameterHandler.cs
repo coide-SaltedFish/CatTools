@@ -138,9 +138,9 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         private void InitControllerParameter(ICatAnimatorController controller, DynamicIntParameter.CatDynamicInt catDynamicInt, BitParameter[] bitParameters)
         {
             // 注册 IsLocal
-            controller.AddParameterIfNot(VRCSdkAnimatorParameters.IsLocal.Name, AnimatorControllerParameterType.Bool, false);
+            controller.AddParameterIfNot(VRCSdkAnimatorParameters.IsLocal.Name, false);
             // 注册 IsInit
-            controller.AddParameterIfNot($"IsInit/{catDynamicInt.name}", AnimatorControllerParameterType.Bool, false);
+            controller.AddParameterIfNot($"IsInit/{catDynamicInt.name}", false);
             
             // 注册 Int
             controller.AddParameterIfNot(new AnimatorControllerParameter
