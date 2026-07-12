@@ -90,7 +90,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             if (go == null)
                 return new HashSet<Material>();
 
-            return go.GetComponentsInChildren<SkinnedMeshRenderer>(includeInactive)
+            return go.GetComponentsInChildren<Renderer>(includeInactive)
                 .SelectMany(r => r.sharedMaterials)
                 .Where(m => m != null)
                 .ToHashSet();

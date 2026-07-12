@@ -152,9 +152,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                 return Array.Empty<Transform>();
             }
 
-            return (from skinnedMeshRenderer in _target.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                where skinnedMeshRenderer.sharedMaterials.Any(sharedMaterial => sharedMaterial == source)
-                select skinnedMeshRenderer.transform)
+            return (from renderer in _target.GetComponentsInChildren<Renderer>(true)
+                where renderer.sharedMaterials.Any(sharedMaterial => sharedMaterial == source)
+                select renderer.transform)
                 .ToArray();
         }
         

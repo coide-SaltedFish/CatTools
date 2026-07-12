@@ -44,7 +44,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var onClip = AnimationBuilder.Create()
                 .Run(builder =>
                 {
-                    var smrs = entity.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    var smrs = entity.GetComponentsInChildren<Renderer>(true);
                     // 遍历所有 SkinnerMeshRenderer 的材质槽，读取材质路径，进行匹配
                     foreach (var renderer in smrs)
                     {
@@ -68,7 +68,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
                             var targetMaterial = targetMaterials[0];
                             
-                            builder.SetObjectReferenceCurve(relativePath, typeof(SkinnedMeshRenderer), PropertyName.MaterialsSlotData(i), new ObjectReferenceKeyframe[]
+                            builder.SetObjectReferenceCurve(relativePath, renderer.GetType(), PropertyName.MaterialsSlotData(i), new ObjectReferenceKeyframe[]
                             {
                                 new()
                                 {
@@ -83,7 +83,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var defaultClip = AnimationBuilder.Create()
                 .Run(builder =>
                 {
-                    var smrs = entity.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    var smrs = entity.GetComponentsInChildren<Renderer>(true);
                     // 遍历所有 SkinnerMeshRenderer 的材质槽
                     foreach (var renderer in smrs)
                     {
@@ -93,7 +93,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                             var itemSharedMaterial = renderer.sharedMaterials[i];
                             if (itemSharedMaterial == null) continue;
 
-                            builder.SetObjectReferenceCurve(relativePath, typeof(SkinnedMeshRenderer), PropertyName.MaterialsSlotData(i), new ObjectReferenceKeyframe[]
+                            builder.SetObjectReferenceCurve(relativePath, renderer.GetType(), PropertyName.MaterialsSlotData(i), new ObjectReferenceKeyframe[]
                             {
                                 new()
                                 {
