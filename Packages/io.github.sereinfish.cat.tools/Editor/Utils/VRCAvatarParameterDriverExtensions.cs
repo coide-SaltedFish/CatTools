@@ -40,6 +40,37 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             });
         }
         
+        public static void AddParameterDriverAdd(this VRCAvatarParameterDriver driver, string name, float value)
+        {
+            driver.AddParameterDriver(new VRC_AvatarParameterDriver.Parameter
+            {
+                name = name,
+                value = value,
+                type = VRC_AvatarParameterDriver.ChangeType.Add
+            });
+        }
+        
+        public static void AddParameterDriverCopy(this VRCAvatarParameterDriver driver, string name, string source)
+        {
+            driver.AddParameterDriver(new VRC_AvatarParameterDriver.Parameter
+            {
+                name = name,
+                source = source,
+                type = VRC_AvatarParameterDriver.ChangeType.Copy
+            });
+        }
+        
+        public static void AddParameterDriverRandom(this VRCAvatarParameterDriver driver, string name, float min, float max)
+        {
+            driver.AddParameterDriver(new VRC_AvatarParameterDriver.Parameter
+            {
+                name = name,
+                valueMin = min,
+                valueMax = max,
+                type = VRC_AvatarParameterDriver.ChangeType.Random
+            });
+        }
+        
         public static void AddParameterDriverSet(this VRCAvatarParameterDriver driver, string name, bool value)
         {
             driver.AddParameterDriverSet(name, value ? 1f : 0f);

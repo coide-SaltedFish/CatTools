@@ -36,7 +36,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         public override void Execute(ICatContext context, LightController entity)
         {
             var controller = context.GetAnimatorController(VRCAvatarDescriptor.AnimLayerType.FX);
-            var layer = ICatLayer.Create(context, "CatLightController")
+            var layer = ICatLayer.Create(context, $"CatLightController_{StringHelper.GetRandomString()}")
                 .AddToController(controller);
             controller.AddParameterIfNot(entity.controllerParameterName, AnimatorControllerParameterType.Float, 0.5f);
             var animClip = CreateLightLimitAnimationClip(context, entity);

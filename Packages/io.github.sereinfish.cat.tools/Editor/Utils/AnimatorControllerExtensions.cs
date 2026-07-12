@@ -73,7 +73,9 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             {
                 name = name,
                 type = type,
-                defaultFloat = defaultValue
+                defaultFloat = defaultValue,
+                defaultInt = (int) defaultValue,
+                defaultBool = defaultValue != 0f
             });
         }
         

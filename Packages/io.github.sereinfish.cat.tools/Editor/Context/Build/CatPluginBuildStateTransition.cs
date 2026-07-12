@@ -44,6 +44,11 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             _transition.SetDestination(state.GetState<VirtualState>());
         }
 
+        public void SetExitDestination()
+        {
+            _transition.SetExitDestination();
+        }
+
         public T GetTransition<T>() where T : class
         {
             return _transition as T;

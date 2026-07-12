@@ -44,6 +44,11 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
             _transition.destinationState = state.GetState<AnimatorState>();
         }
 
+        public void SetExitDestination()
+        {
+            _transition.destinationState = null;
+        }
+
         public T GetTransition<T>() where T : class
         {
             return _transition as T;

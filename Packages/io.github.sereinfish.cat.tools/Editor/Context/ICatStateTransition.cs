@@ -43,6 +43,8 @@ namespace io.github.sereinfish.cat.tools.editor.context
         
         public void SetDestination(ICatState state);
 
+        public void SetExitDestination();
+
         public static ICatStateTransition Create(ICatContext context)
         {
             return context.CreateTransition();
