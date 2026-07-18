@@ -20,8 +20,9 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using JetBrains.Annotations;
+using System.Reflection;
 using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.context.build
@@ -43,7 +44,35 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         public bool Mirror { get => _state.Mirror; set => _state.Mirror = value; }
         public string MirrorParameter { get => _state.MirrorParameter; set => _state.MirrorParameter = value; }
         public float Speed { get => _state.Speed; set => _state.Speed = value; }
-        public string SpeedParameter { get => _state.SpeedParameter; set => _state.SpeedParameter = value; }
+
+        public string SpeedParameter
+        {
+            get => _state.SpeedParameter;
+            set
+            {
+                _state.SpeedParameter = value;
+                // 使用反射强制设置 speedParameterActive 
+                // 获取 VirtualState 内部 AnimatorState
+                // var field = typeof(VirtualState).GetField("_state",
+                //         BindingFlags.Instance |
+                //         BindingFlags.NonPublic);
+                //
+                // if (field == null)
+                // {
+                //     Debug.LogError("SpeedParameter set failed, Failed to get _state field: null");
+                //     return;
+                // }
+                // var animatorState = field.GetValue(_state) as AnimatorState;
+                // if (animatorState == null)
+                // {
+                //     Debug.LogError($"SpeedParameter set failed, Failed to get _state(as AnimatorState) field: {field.GetValue(_state).GetType()}");
+                //     return;
+                // }
+                // // 强制开启参数控制
+                // animatorState.speedParameterActive = true;
+            }
+        }
+
         public string Tag { get => _state.Tag; set => _state.Tag = value; }
         public string TimeParameter { get => _state.TimeParameter; set => _state.TimeParameter = value; }
         

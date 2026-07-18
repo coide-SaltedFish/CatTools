@@ -26,7 +26,7 @@ namespace io.github.sereinfish.cat.tools.editor.context
 {
     public interface ICatState
     {
-        [CanBeNull] public AnimationClip Motion { set; }
+        public AnimationClip Motion { set; }
         public string Name { get; set; }
         public bool WriteDefaultValues { get; set; }
         

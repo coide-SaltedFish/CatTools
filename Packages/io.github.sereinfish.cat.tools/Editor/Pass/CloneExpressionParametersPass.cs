@@ -19,6 +19,7 @@
 #endregion
 
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.vrchat;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -28,10 +29,10 @@ namespace io.github.sereinfish.cat.tools.editor.pass
     {
         protected override void Execute(BuildContext context)
         {
-            var original = context.AvatarDescriptor.expressionParameters;
+            var original = context.VRChatAvatarDescriptor().expressionParameters;
             if (original == null)
             {
-                context.AvatarDescriptor.expressionParameters =
+                context.VRChatAvatarDescriptor().expressionParameters =
                     ScriptableObject.CreateInstance<VRCExpressionParameters>();
                 return;
             }
@@ -39,7 +40,7 @@ namespace io.github.sereinfish.cat.tools.editor.pass
             var cloneExpr = Object.Instantiate(original);
             cloneExpr.name = original.name + "_NDMF_CT_Clone";
 
-            context.AvatarDescriptor.expressionParameters = cloneExpr;
+            context.VRChatAvatarDescriptor().expressionParameters = cloneExpr;
         }
     }
 }

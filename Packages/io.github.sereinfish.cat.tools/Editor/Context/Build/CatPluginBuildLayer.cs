@@ -22,6 +22,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.context.build
@@ -30,8 +31,8 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
     {
         private readonly VirtualLayer _layer;
         private readonly CloneContext _cloneContext;
-        private readonly VirtualStateMachine _stateMachine;
-        
+        private VirtualStateMachine _stateMachine => _layer.StateMachine;
+
         public string Name { get => _layer.Name; set => _layer.Name = value; }
         
         private CatPluginBuildStateMachine _catPluginBuildStateMachine;
@@ -58,7 +59,10 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
 
         public Vector3 EntryPosition { get => _stateMachine.EntryPosition; set => _stateMachine.EntryPosition = value; }
         public Vector3 AnyStatePosition { get => _stateMachine.AnyStatePosition; set => _stateMachine.AnyStatePosition = value; }
-        
+        public AnimatorLayerBlendingMode BlendingMode { get => _layer.BlendingMode; set => _layer.BlendingMode = value; }
+        public float DefaultWeight { get => _layer.DefaultWeight; set => _layer.DefaultWeight = value; }
+        public bool IKPass { get => _layer.IKPass; set => _layer.IKPass = value; }
+
         private ImmutableList<ICatStateTransition> _transitions = ImmutableList<ICatStateTransition>.Empty;
         public ImmutableList<ICatStateTransition> AnyStateTransitions
         {
@@ -88,12 +92,14 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         private CatPluginBuildLayer(CloneContext context, string name)
         {
             _layer = VirtualLayer.Create(context, name);
+            _layer.DefaultWeight = 1f;
+            _layer.BlendingMode = AnimatorLayerBlendingMode.Override;
             _cloneContext = context;
-            _stateMachine = _layer.StateMachine!;
         }
         public static ICatLayer Create(CloneContext context, string name)
         {
-            return new CatPluginBuildLayer(context, name);
+            var layer = new CatPluginBuildLayer(context, name);
+            return layer;
         }
     }
 }

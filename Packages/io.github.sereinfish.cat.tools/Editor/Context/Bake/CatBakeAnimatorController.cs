@@ -52,9 +52,25 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
             _controller = controller;
         }
 
-        public void AddLayer(ICatLayer layer, LayerPriority priority = default)
+        public void AddLayer(ICatLayer layer, LayerPriority? priority = null)
         {
             _controller.AddLayer(layer.GetLayer<AnimatorControllerLayer>());
+        }
+
+        public int GetLayerIndex(ICatLayer layer)
+        {
+            return GetLayerIndex(layer.Name);
+        }
+
+        public int GetLayerIndex(string name)
+        {
+            for (var i = 0; i < _controller.layers.Length; i++)
+            {
+                var ly = _controller.layers[i];
+                if (ly.name == name)
+                    return i;
+            }
+            return -1;
         }
     }
 }

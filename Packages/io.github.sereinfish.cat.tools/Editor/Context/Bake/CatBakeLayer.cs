@@ -57,7 +57,10 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
 
         public Vector3 EntryPosition { get => _stateMachine.entryPosition; set => _stateMachine.entryPosition = value; }
         public Vector3 AnyStatePosition { get => _stateMachine.anyStatePosition; set => _stateMachine.anyStatePosition = value; }
-        
+        public AnimatorLayerBlendingMode BlendingMode { get => _layer.blendingMode; set => _layer.blendingMode = value; }
+        public float DefaultWeight { get => _layer.defaultWeight; set => _layer.defaultWeight = value; }
+        public bool IKPass { get => _layer.iKPass; set => _layer.iKPass = value; }
+
         private ImmutableList<ICatStateTransition> _anyStateTransitions = ImmutableList<ICatStateTransition>.Empty;
 
         public ImmutableList<ICatStateTransition> AnyStateTransitions

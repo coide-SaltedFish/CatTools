@@ -37,9 +37,30 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             _cloneContext = cloneContext;
         }
         
-        public void AddLayer(ICatLayer layer, LayerPriority priority = default)
+        public void AddLayer(ICatLayer layer, LayerPriority? priority = null)
         {
-            _controller.AddLayer(priority, layer.GetLayer<VirtualLayer>());
+            var p = priority ?? LayerPriority.Default;
+            var l = layer.GetLayer<VirtualLayer>();
+            _controller.AddLayer(p, l);
+            l.DefaultWeight = layer.DefaultWeight;
+            l.BlendingMode = layer.BlendingMode;
+        }
+
+        public int GetLayerIndex(ICatLayer layer)
+        {
+            return GetLayerIndex(layer.Name);
+        }
+
+        public int GetLayerIndex(string name)
+        {
+            foreach (var controllerLayer in _controller.Layers)
+            {
+                if (string.Equals(controllerLayer.Name, name))
+                {
+                    return controllerLayer.VirtualLayerIndex;
+                }
+            }
+            return -1;
         }
     }
 }

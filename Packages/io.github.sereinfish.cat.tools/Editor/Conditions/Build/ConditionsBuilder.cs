@@ -46,12 +46,14 @@ namespace io.github.sereinfish.cat.tools.editor.Conditions.Build
             return this;
         }
 
-        public ConditionsBuilder ForEach<T>(IEnumerable<T> items, Action<ConditionsBuilder, T> action)
+        public ConditionsBuilder ForEach<T>(IEnumerable<T> items, Action<ConditionsBuilder, T> action, Action<ConditionsBuilder, T> insert = null)
         {
             if (items == null || action == null) return this;
             InitCurrentConditions();
+            var init = false;
             foreach (var item in items)
             {
+                if (init) insert?.Invoke(this, item); else init = true;
                 action(this, item);
             }
             return this;

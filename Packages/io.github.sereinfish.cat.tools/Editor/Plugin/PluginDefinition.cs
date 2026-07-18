@@ -18,11 +18,13 @@
 //  */
 #endregion
 
+using System;
 using io.github.sereinfish.cat.tools.editor.pass;
 using io.github.sereinfish.cat.tools.editor.plugin;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
-using UnityEngine;
+using UnityEditor.Build.Reporting;
+using Object = UnityEngine.Object;
 
 [assembly: ExportsPlugin(typeof(PluginDefinition))]
 namespace io.github.sereinfish.cat.tools.editor.plugin
@@ -32,16 +34,24 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
         public override string QualifiedName => "CatTools";
         public override string DisplayName => "CatTools";
         
+        protected override void OnUnhandledException(Exception e)
+        {
+            ErrorReport.ReportException(e);
+        }
+        
         protected override void Configure()
         {
+            var seq = InPhase(BuildPhase.Resolving); 
             // 克隆全部动画控制器
-            InPhase(BuildPhase.Resolving).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run("Clone animators", _ => { });
                 s.Run(CloneExpressionParametersPass.Instance);
             });
             // 执行
-            InPhase(BuildPhase.Resolving).WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            seq = InPhase(BuildPhase.Transforming); 
+            seq.BeforePlugin("nadena.dev.modular-avatar");
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run(ComponentHandlerPass.Instance);
             });

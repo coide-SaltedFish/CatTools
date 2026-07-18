@@ -24,5 +24,8 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
     {
         public static string ObjIsActive = "m_IsActive";
         public static string MaterialsSlotData(int slot) => $"m_Materials.Array.data[{slot}]";
+
+        public static string Volume = "m_Volume";
+        public static string Pitch = "m_Pitch";
     }
 }

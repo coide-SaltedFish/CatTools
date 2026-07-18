@@ -18,10 +18,10 @@
 //  */
 #endregion
 
-using System;
 using System.Collections.Immutable;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEditor.Animations;
 
 namespace io.github.sereinfish.cat.tools.editor.context
 {
@@ -33,6 +33,10 @@ namespace io.github.sereinfish.cat.tools.editor.context
         public ICatState DefaultState { get; set; }
         public Vector3 EntryPosition { get; set; }
         public Vector3 AnyStatePosition { get; set; }
+        
+        public UnityEditor.Animations.AnimatorLayerBlendingMode BlendingMode { get; set; }
+        public float DefaultWeight { get; set; }
+        public bool IKPass { get; set; }
         
         public ImmutableList<ICatStateTransition> AnyStateTransitions { get; set; }
         

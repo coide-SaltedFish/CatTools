@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -57,6 +58,14 @@ namespace io.github.sereinfish.cat.tools.editor.Parameter.Descriptor
                 saved = saved,
                 networkSynced = networkSynced
             });
+            return this;
+        }
+
+        public ExpressionParametersBuilder AddIfNameNotEmptyOrNull([CanBeNull] string name,
+            VRCExpressionParameters.ValueType valueType, float defaultValue, bool saved, bool networkSynced = true)
+        {
+            if (string.IsNullOrEmpty(name)) return this;
+            Add(name, valueType, defaultValue, saved, networkSynced);
             return this;
         }
 

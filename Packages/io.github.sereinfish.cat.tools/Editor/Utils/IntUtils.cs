@@ -33,9 +33,9 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         public static bool[] SplitToBools(this int value, int count)
         {
             if (count is < 1 or > 8)
-                throw new ArgumentOutOfRangeException(nameof(count), "count 必须在 1 到 8 之间");
+                throw new ArgumentOutOfRangeException(nameof(count), $"count 必须在 1 到 8 之间，count={count}");
             if (value is < 0 or > 0xFF)
-                throw new ArgumentOutOfRangeException(nameof(value), "value 必须在 0～255 之间");
+                throw new ArgumentOutOfRangeException(nameof(value), $"value 必须在 0～255 之间，value={value}");
 
             var bits = new bool[count];
             for (var i = 0; i < count; i++)

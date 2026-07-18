@@ -56,7 +56,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             controller.parameters = controller.parameters.AddItem(parameter).ToArray();
         }
         
-        public static void AddParameterIfNot(this ICatAnimatorController controller,
+        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
             AnimatorControllerParameter parameter)
         {
             var param = controller.Parameters.GetValueOrDefault(parameter.name);;
@@ -64,9 +64,11 @@ namespace io.github.sereinfish.cat.tools.editor.utils
 
             controller.Parameters = controller.Parameters.Remove(parameter.name);
             controller.Parameters = controller.Parameters.Add(parameter.name, parameter);
+            
+            return controller;
         }
         
-        public static void AddParameterIfNot(this ICatAnimatorController controller,
+        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
             string name, AnimatorControllerParameterType type, float defaultValue = 0f)
         {
             controller.AddParameterIfNot(new AnimatorControllerParameter
@@ -77,9 +79,11 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 defaultInt = (int) defaultValue,
                 defaultBool = defaultValue != 0f
             });
+            
+            return controller;
         }
         
-        public static void AddParameterIfNot(this ICatAnimatorController controller,
+        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
             string name, bool defaultValue)
         {
             controller.AddParameterIfNot(new AnimatorControllerParameter
@@ -88,6 +92,8 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 type = AnimatorControllerParameterType.Bool,
                 defaultBool = defaultValue
             });
+            
+            return controller;
         }
     }
 }

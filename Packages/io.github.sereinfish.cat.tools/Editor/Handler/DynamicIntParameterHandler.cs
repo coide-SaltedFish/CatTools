@@ -18,6 +18,7 @@
 //  */
 #endregion
 
+using System.Collections.Generic;
 using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.Conditions;
@@ -39,49 +40,32 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
             foreach (var catDynamicInt in entity.parameters)
             {
-                var layer = ICatLayer.Create(context, $"DynamicInt/{catDynamicInt.name}")
-                    .AddToController(controller);
-                var bitParameters = GetBitParameter(catDynamicInt);
-                
-                InitControllerParameter(controller, catDynamicInt, bitParameters);
-                RegisterParameter(context, catDynamicInt, bitParameters);
-                
-                // 创建状态机
-                CreateInitState(context, controller, layer, catDynamicInt, bitParameters);
-                CreateRWState(context, controller, layer, catDynamicInt, bitParameters);
+                CreateDynamicInt(context, controller, catDynamicInt.name, null, catDynamicInt.width, catDynamicInt.save,
+                    true, catDynamicInt.defaultValue, true, true, false);
             }
         }
 
-        private void CreateRWState(ICatContext context, ICatAnimatorController controller, ICatLayer layer,
-            DynamicIntParameter.CatDynamicInt catDynamicInt, BitParameter[] bitParameters)
+        private static void CreateRWState(ICatContext context, ICatAnimatorController controller, ICatLayer layer,
+            string name, int bitWidth, BitParameter[] bitParameters, bool read = true, bool write = true, bool isLocal = false)
         {
-            var valueMax = 1 << catDynamicInt.width;
+            var valueMax = 1 << bitWidth;
             const int stateHeight = 60;
             var stateY = -(stateHeight * valueMax / 2);
             for (var i = 0; i < valueMax; i++)
             {
                 var currentValue = i;
-                var bits = i.SplitToBools(catDynamicInt.width);
-                var stateR = layer.AddState($"R_{i}", position: new Vector3(300, stateY + i * stateHeight));
-                if (i == 0) layer.StateMachine.DefaultState = stateR;
-                stateR.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+                var bits = i.SplitToBools(bitWidth);
+                if (read)
                 {
-                    driver.AddParameterDriverSet(catDynamicInt.name, currentValue);
-                    driver.AddParameterDriverSet($"IsInit/{catDynamicInt.name}", true);
-                });
-                var conditionRBuilder = ConditionsBuilder.Create()
-                    .If(VRCSdkAnimatorParameters.IsLocal.Name, false)
-                    .Run(builder =>
+                    var stateR = layer.AddState($"R_{i}", position: new Vector3(300, stateY + i * stateHeight));
+                    if (i == 0) layer.StateMachine.DefaultState = stateR;
+                    stateR.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
                     {
-                        for (var j = 0; j < bits.Length; j++)
-                        {
-                            builder.If(bitParameters[j].Name, bits[j]);
-                        }
+                        driver.AddParameterDriverSet(name, currentValue);
+                        driver.AddParameterDriverSet($"IsInit/{name}", true);
                     });
-                if (i > 0)
-                {
-                    conditionRBuilder.Or()
-                        .If($"IsInit/{catDynamicInt.name}", false)
+                    var conditionRBuilder = ConditionsBuilder.Create()
+                        .If(VRCSdkAnimatorParameters.IsLocal.Name, isLocal)
                         .Run(builder =>
                         {
                             for (var j = 0; j < bits.Length; j++)
@@ -89,65 +73,89 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                                 builder.If(bitParameters[j].Name, bits[j]);
                             }
                         });
-                }
-                conditionRBuilder.Build().CreateAnyStateConditionsTransition(context, controller, layer, stateR);
-                
-                var stateW = layer.AddState($"W_{i}", position: new Vector3(-300, stateY + i * stateHeight));
-                stateW.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
-                {
-                    for (var j = 0; j < bits.Length; j++)
+                    if (i > 0)
                     {
-                        driver.AddParameterDriverSet(bitParameters[j].Name, bits[j]);
+                        conditionRBuilder.Or()
+                            .If($"IsInit/{name}", false)
+                            .Run(builder =>
+                            {
+                                for (var j = 0; j < bits.Length; j++)
+                                {
+                                    builder.If(bitParameters[j].Name, bits[j]);
+                                }
+                            });
                     }
-                });
-                var conditionW = ConditionsBuilder.Create()
-                    .If(VRCSdkAnimatorParameters.IsLocal.Name, true)
-                    .If($"IsInit/{catDynamicInt.name}", true)
-                    .Equal(catDynamicInt.name, currentValue)
-                    .Build();
-                conditionW.CreateAnyStateConditionsTransition(context, controller, layer, stateW);
+                    conditionRBuilder.Build().CreateAnyStateConditionsTransition(context, controller, layer, stateR);
+                }
+
+                if (write)
+                {
+                    var stateW = layer.AddState($"W_{i}", position: new Vector3(-300, stateY + i * stateHeight));
+                    stateW.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+                    {
+                        for (var j = 0; j < bits.Length; j++)
+                        {
+                            driver.AddParameterDriverSet(bitParameters[j].Name, bits[j]);
+                        }
+                    });
+                    var conditionW = ConditionsBuilder.Create()
+                        .If(VRCSdkAnimatorParameters.IsLocal.Name, true)
+                        .If($"IsInit/{name}", true)
+                        .Equal(name, currentValue)
+                        .Build();
+                    conditionW.CreateAnyStateConditionsTransition(context, controller, layer, stateW);
+                }
             }
         }
         
-        private void CreateInitState(ICatContext context, ICatAnimatorController controller, ICatLayer layer, DynamicIntParameter.CatDynamicInt catDynamicInt, BitParameter[] bitParameters)
+        private static void CreateInitState(ICatContext context, ICatAnimatorController controller, ICatLayer layer,
+            string name, BitParameter[] bitParameters)
         {
             var initState = layer.AddState("Init", position:new Vector3(0, 200));
             initState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
             {
-                driver.AddParameterDriverSet(catDynamicInt.name, 0f); // 初始值
-                driver.AddParameterDriverSet($"IsInit/{catDynamicInt.name}", true);
+                driver.AddParameterDriverSet(name, 0f); // 初始值
+                driver.AddParameterDriverSet($"IsInit/{name}", true);
             });
 
             var condition = ConditionsBuilder.Create()
-                .If($"IsInit/{catDynamicInt.name}", false)
+                .If($"IsInit/{name}", false)
                 .ForEach(bitParameters.Select(p => p.Name), CatAnimatorConditionRuntimeMode.If, false)
                 .Build();
             
             condition.CreateAnyStateConditionsTransition(context, controller, layer, initState);
         }
 
-        private BitParameter[] GetBitParameter(DynamicIntParameter.CatDynamicInt catDynamicInt)
+        private static BitParameter[] GetBitParameter(string name, int bitWidth, int defaultValue, string[] bitNames = null)
         {
-            var bits = catDynamicInt.defaultValue.SplitToBools(catDynamicInt.width);
-            return bits.Select((b, i) => new BitParameter { Name = $"CT_BIT/{catDynamicInt.name}/{i}", Value = b }).ToArray();
+            var bits = defaultValue.SplitToBools(bitWidth);
+            if (bitNames == null || bitNames.Length == 0)
+            {
+                bitNames = bits.Select((b, i) => $"CT_BIT/{name}/{i}").ToArray();
+            }
+            if (bits.Length != bitNames.Length)
+            {
+                throw new System.ArgumentException("Bit names length must match bit width");
+            }
+            return bits.Select((b, i) => new BitParameter { Name = bitNames[i], Value = b }).ToArray();
         }
 
         /// <summary>
         /// 初始化控制器参数
         /// </summary>
-        private void InitControllerParameter(ICatAnimatorController controller, DynamicIntParameter.CatDynamicInt catDynamicInt, BitParameter[] bitParameters)
+        private static void InitControllerParameter(ICatAnimatorController controller, string name, int defaultValue, BitParameter[] bitParameters)
         {
             // 注册 IsLocal
             controller.AddParameterIfNot(VRCSdkAnimatorParameters.IsLocal.Name, false);
             // 注册 IsInit
-            controller.AddParameterIfNot($"IsInit/{catDynamicInt.name}", false);
+            controller.AddParameterIfNot($"IsInit/{name}", false);
             
             // 注册 Int
             controller.AddParameterIfNot(new AnimatorControllerParameter
             {
-                name = catDynamicInt.name,
+                name = name,
                 type = AnimatorControllerParameterType.Int,
-                defaultInt = catDynamicInt.defaultValue
+                defaultInt = defaultValue
             });
             // 注册 Bit
             foreach (var bitParameter in bitParameters)
@@ -164,16 +172,16 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         /// <summary>
         /// 注册参数
         /// </summary>
-        private void RegisterParameter(ICatContext context, DynamicIntParameter.CatDynamicInt catDynamicInt, BitParameter[] bitParameters)
+        private static void RegisterParameter(ICatContext context, string name, int defaultValue, bool save, bool networkSynced, BitParameter[] bitParameters)
         {
             
             context.GetAvatarDescriptor().ExpressionParameters()
-                .Add(catDynamicInt.name, VRCExpressionParameters.ValueType.Int, catDynamicInt.defaultValue, false, false) // 注册 Int
-                .Add($"IsInit/{catDynamicInt.name}", VRCExpressionParameters.ValueType.Bool, 0, false, false)
+                .Add(name, VRCExpressionParameters.ValueType.Int, defaultValue, false, false) // 注册 Int
+                .Add($"IsInit/{name}", VRCExpressionParameters.ValueType.Bool, 0, false, false)
                 .ForEach(bitParameters, (builder, bitParameter) =>
                 {
                     // 注册 Bit
-                    builder.Add(bitParameter.Name, VRCExpressionParameters.ValueType.Bool, bitParameter.Value ? 1f : 0f, catDynamicInt.save);
+                    builder.Add(bitParameter.Name, VRCExpressionParameters.ValueType.Bool, bitParameter.Value ? 1f : 0f, save, networkSynced);
                 }).Build();
         }
         
@@ -181,6 +189,26 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         {
             public string Name;
             public bool Value;
+        }
+
+        /// <summary>
+        /// 创建动态 Int 参数
+        /// </summary>
+        public static KeyValuePair<string, List<string>> CreateDynamicInt(ICatContext context, ICatAnimatorController controller,
+            string parameterName, string[] bitNames, int bitWidth, bool save, bool networkSynced, int defaultValue,
+            bool read, bool write, bool isLocal)
+        {
+            var layer = ICatLayer.Create(context, $"DynamicInt/{parameterName}_{StringHelper.GetRandomString()}")
+                .AddToController(controller);
+            // 参数注册
+            var bitParameters = GetBitParameter(parameterName, bitWidth, defaultValue, bitNames);
+            InitControllerParameter(controller, parameterName, defaultValue, bitParameters);
+            RegisterParameter(context, parameterName, defaultValue, save, networkSynced, bitParameters);
+            // 创建状态机
+            CreateInitState(context, controller, layer, parameterName, bitParameters);
+            CreateRWState(context, controller, layer, parameterName, bitWidth, bitParameters, read, write, isLocal);
+            
+            return new KeyValuePair<string, List<string>>(parameterName, bitParameters.Select(p => p.Name).ToList());
         }
     }
 }

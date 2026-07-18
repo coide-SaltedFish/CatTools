@@ -28,6 +28,9 @@ namespace io.github.sereinfish.cat.tools.editor.context
     {
         public ImmutableDictionary<string, AnimatorControllerParameter> Parameters { get; set; }
 
-        public void AddLayer(ICatLayer layer, LayerPriority priority = default);
+        public void AddLayer(ICatLayer layer, LayerPriority? priority = null);
+
+        public int GetLayerIndex(ICatLayer layer);
+        public int GetLayerIndex(string name);
     }
 }
