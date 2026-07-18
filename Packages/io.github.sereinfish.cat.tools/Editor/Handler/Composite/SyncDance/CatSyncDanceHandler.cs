@@ -71,7 +71,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         /// </summary>
         private void SyncContactsBuild(ICatContext context, CatSyncDance entity)
         {
-            var worldTransform = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath("0c7d244cb1bb7d24d9af6d34c9e6560c"));
+            var worldTransform = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/io.github.sereinfish.cat.tools/Editor/Prefabs/WorldTransform.prefab");
             
             // 当前对象下新建对象
             var contacts = new GameObject("Contacts")
@@ -710,8 +710,30 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     continue;
                 }
 
-                DynamicIntParameterHandler.CreateDynamicInt(context, controller, syncParameterName.name, entity.GetBitNames(syncParameterName),
-                    bitWidth, false, false, 0, true, false, true);
+                // DynamicIntParameterHandler.CreateDynamicInt(context, controller, syncParameterName.name, entity.GetBitNames(syncParameterName),
+                //     bitWidth, false, false, 0, true, false, true);
+                
+                var layer = ICatLayer.Create(context,
+                        $"SyncParameterBits_{syncParameterName.name}_{StringHelper.GetRandomString()}")
+                    .AddToController(controller);
+                var bitNames = entity.GetBitNames(syncParameterName);
+                foreach (var parameterValue in entity.GetSyncParameterValues(syncParameterName.name))
+                {
+                    var state = layer.AddState($"{syncParameterName.name}_{parameterValue}");
+                    var bits = parameterValue.SplitToBools(bitWidth);
+                    state.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+                    {
+                        driver.AddParameterDriverSet(syncParameterName.name, parameterValue);
+                    });
+                    ConditionsBuilder.Create()
+                        .Run(builder =>
+                        {
+                            for (var i = 0; i < bitNames.Length; i++)
+                            {
+                                builder.If(bitNames[i], bits[i]);
+                            }
+                        }).Build().CreateAnyStateConditionsTransition(context, controller, layer, state);
+                }
             }
         }
         

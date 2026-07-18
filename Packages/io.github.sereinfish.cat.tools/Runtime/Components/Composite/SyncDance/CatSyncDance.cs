@@ -82,6 +82,22 @@ namespace io.github.sereinfish.cat.tools.Components
             return bitWidth;
         }
 
+        public int[] GetSyncParameterValues(string parameterName)
+        {
+            var list = new List<int> { 0 };
+            foreach (var catSyncDanceEntry in dances)
+            {
+                foreach (var danceParameter in catSyncDanceEntry.danceParameters)
+                {
+                    if (danceParameter.parameterName == parameterName)
+                    {
+                        list.Add((int) danceParameter.value);
+                    }
+                }
+            }
+            return list.ToArray();
+        }
+
         public int GetSyncParameterMaxValue(string parameterName)
         {
             var max = 0;

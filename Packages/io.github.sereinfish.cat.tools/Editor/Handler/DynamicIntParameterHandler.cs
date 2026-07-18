@@ -41,7 +41,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             foreach (var catDynamicInt in entity.parameters)
             {
                 CreateDynamicInt(context, controller, catDynamicInt.name, null, catDynamicInt.width, catDynamicInt.save,
-                    true, catDynamicInt.defaultValue, true, true, false);
+                    true, catDynamicInt.defaultValue, true, true, true);
             }
         }
 
