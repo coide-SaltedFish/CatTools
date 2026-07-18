@@ -34,7 +34,7 @@ namespace io.github.sereinfish.cat.tools.Components
         public AnimationClip loopClip = null; // 循环舞蹈动画
         public AudioClip musicClip; // 舞蹈音频
         public bool loop = true; // 是否循环播放
-        
+        public float speed = 3f; // 舞蹈播放乘数，默认为 3
         public DanceParameter[] danceParameters; // 舞蹈播放的条件
         
         public enum PathType

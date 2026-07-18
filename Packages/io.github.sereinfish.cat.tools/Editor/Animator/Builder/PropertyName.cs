@@ -27,5 +27,9 @@ namespace io.github.sereinfish.cat.tools.editor.animator.builder
 
         public static string Volume = "m_Volume";
         public static string Pitch = "m_Pitch";
+        
+        public static string LocalPositionZ = "m_LocalPosition.z";
+        public static string LocalPositionX = "m_LocalPosition.x";
+        public static string LocalPositionY = "m_LocalPosition.y";
     }
 }

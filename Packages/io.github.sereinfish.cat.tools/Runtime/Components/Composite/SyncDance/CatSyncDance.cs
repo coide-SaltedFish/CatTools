@@ -34,6 +34,9 @@ namespace io.github.sereinfish.cat.tools.Components
         
         // 是否自动生成控制参数
         public bool autoCreateControllerParameter = true;
+
+        // 同步开关参数名称
+        public string syncControllerParameterName;
         
         // 音量参数，可留空，留空不生成音量控制组件
         public string volumeParameter;

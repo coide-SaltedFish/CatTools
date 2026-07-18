@@ -41,8 +41,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class CatSyncDanceHandler : ComponentHandler<CatSyncDance>
     {
+        private const string SpeedUp = "SpeedUp";
+        private const string NoOlverlap = "NoOlverlap";
+        
         private Dictionary<string, List<string>> _syncParameterNames; // 同步参数名称
+        private Transform _contactsTransform; // 同步组件对象
         private Transform _songsTransform; // 音乐对象
+        private Transform _speedControllerTransform; // 速度控制器对象
         // 发送器和接收器对象
         private readonly Dictionary<string, List<Transform>> _senderContactTransforms = new();
         private readonly Dictionary<string, List<Transform>> _receiverContactTransforms = new();
@@ -77,6 +82,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         entity.syncDanceConfig.syncRadius, entity.syncDanceConfig.syncRadius * 2)
                 }
             };
+            _contactsTransform = contacts.transform;
             // 固定对象
             var contactsScaleConstraint = contacts.AddComponent<VRCScaleConstraint>();
             contactsScaleConstraint.IsActive = true;
@@ -184,7 +190,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 speedUpCReceiver.contentTypes = DynamicsUsageFlags.Everything;
                 speedUpCReceiver.collisionTags = new List<string> { entity.speedParameter };
                 speedUpCReceiver.receiverType = ContactReceiver.ReceiverType.Proximity;
-                speedUpCReceiver.parameter = "SpeedUp";
+                speedUpCReceiver.parameter = SpeedUp;
                 // 测距组件
                 var overlapController = new GameObject("OverlapController")
                 {
@@ -209,6 +215,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         position = new Vector3(0, -7f, 0)
                     }
                 };
+                _speedControllerTransform = speedControllerCSender.transform;
                 speedControllerCSender.transform.SetParent(speedObj.transform);
                 speedControllerCSender.SetActive(false);
                 var speedControllerCSenderComponent = speedControllerCSender.AddComponent<VRCContactSender>();
@@ -322,13 +329,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var toInitConditions = ConditionsBuilder.Create()
                 .Run(builder =>
                 {
-                    var init = false;
                     foreach (var syncDanceEntry in entity.dances)
                     {
-                        if (init.Not()) init = true; else builder.Or();
                         foreach (var danceParameter in syncDanceEntry.danceParameters)
                         {
-                            builder.Equal(danceParameter.parameterName, danceParameter.value);
+                            builder.Equal(danceParameter.parameterName, danceParameter.value)
+                                .Equal(entity.controllerParameterName, 0f)
+                                .Or();
                         }
                     }
 
@@ -357,7 +364,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     .Equal(entity.controllerParameterName, i + 1).Or()
                     .ForEach(syncDanceEntry.danceParameters, (builder, parameter) =>
                     {
-                        builder.Equal(parameter.parameterName, parameter.value);
+                        builder.Equal(parameter.parameterName, parameter.value)
+                            .Equal(entity.controllerParameterName, 0f);
                     }, (builder, _) =>
                     {
                         builder.Or();
@@ -365,11 +373,15 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     .Build();
                 // 不循环的动作
                 controller.AddParameterIfNot("pleasenext_false", AnimatorControllerParameterType.Bool);
+                // 停止条件
                 var stopDanceConditions = ConditionsBuilder.Create()
                     .ForEach(entity.stopDanceParameters, (builder, parameter) =>
                     {
                         builder.Equal(parameter.parameterName, parameter.value);
                     }, (builder, _) => builder.Or())
+                    .Or()
+                    .NotEqual(entity.controllerParameterName, i + 1)
+                    .Greater(entity.controllerParameterName, 0f)
                     .Or()
                     .NotEqual(entity.controllerParameterName, i + 1)
                     .ForEach(syncDanceEntry.danceParameters, (builder, parameter) =>
@@ -378,7 +390,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     }).Build();
                 var firstDanceClip = syncDanceEntry.clip.TryGet(0);
                 var stateDanceState = layer.AddState(syncDanceEntry.danceName, firstDanceClip, new Vector3(danceStateX, danceStateY));
-                SetSyncDanceSpeed(stateDanceState, entity);
+                SetSyncDanceSpeed(stateDanceState, entity, syncDanceEntry);
                 danceStateX += 200;
                 toDanceConditions.CreateConditionsTransitionTo(context, controller, initState, stateDanceState);
                 stopDanceConditions.CreateConditionsTransitionTo(context, controller, stateDanceState, stopState);
@@ -387,7 +399,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 {
                     var animationClip = syncDanceEntry.clip[i1];
                     var nextDanceState = layer.AddState($"{syncDanceEntry.danceName}_{i1}", animationClip, new Vector3(danceStateX, danceStateY));
-                    SetSyncDanceSpeed(nextDanceState, entity);
+                    SetSyncDanceSpeed(nextDanceState, entity, syncDanceEntry);
                     danceStateX += 200;
                     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, nextDanceState, exitTime:1f);
                     stopDanceConditions.CreateConditionsTransitionTo(context, controller, nextDanceState, stopState);
@@ -412,7 +424,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         );
                     }
                     var nextDanceState = layer.AddState(syncDanceEntry.danceName + "_loop", syncDanceEntry.loopClip, new Vector3(danceStateX, danceStateY));
-                    SetSyncDanceSpeed(nextDanceState, entity);
+                    SetSyncDanceSpeed(nextDanceState, entity, syncDanceEntry);
                     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, nextDanceState, exitTime:1f);
                     stopDanceConditions.CreateConditionsTransitionTo(context, controller, nextDanceState, stopState);
                 }
@@ -432,6 +444,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var controller = context.GetAnimatorController(VRCAvatarDescriptor.AnimLayerType.FX);
             // bits sender set
             FxBitsSenderControllerLayerBuild(context, entity, controller);
+            // contacts toggle
+            FxContactsToggleLayerBuild(context, entity, controller);
             // music play
             FxMusicPlayerLayerBuild(context, entity, controller);
             // volume control
@@ -443,6 +457,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             if (string.IsNullOrEmpty(entity.speedParameter).Not())
             {
                 FxMusicPitchControllerLayerBuild(context, entity, controller);
+                FxDanceSpeedControllerLayerBuild(context, entity, controller);
             }
         }
 
@@ -497,6 +512,29 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     .Equal(entity.controllerParameterName, i + 1)
                     .Build().CreateAnyStateConditionsTransition(context, controller, layer, layer.AddState($"dance {i + 1}", clip));
             }
+        }
+
+        private void FxContactsToggleLayerBuild(ICatContext context, CatSyncDance entity,
+            ICatAnimatorController controller)
+        {
+            var layer = ICatLayer.Create(context, $"CatSyncDanceFXContactsToggle_{StringHelper.GetRandomString()}")
+                .AddToController(controller);
+            var contactsPath = CatToolsPath.GetRelativePath(context.AvatarRootTransform, _contactsTransform);
+            var offClip = AnimationBuilder.Create()
+                .SetCurve(contactsPath, typeof(GameObject), PropertyName.ObjIsActive, builder =>
+                {
+                    builder.AddKey(0f, 0f);
+                }).Build();
+            var onClip = AnimationBuilder.Create()
+                .SetCurve(contactsPath, typeof(GameObject), PropertyName.ObjIsActive, builder =>
+                {
+                    builder.AddKey(0f, 1f);
+                }).Build();
+            var off = layer.AddState("OFF", offClip);
+            layer.DefaultState = off;
+            ConditionsBuilder.Create()
+                .If(entity.syncControllerParameterName, true)
+                .Build().CreateConditionsTransition(context, controller, layer.AddState("ON", onClip), off);
         }
         
         private void FxMusicPlayerLayerBuild(ICatContext context, CatSyncDance entity, ICatAnimatorController controller)
@@ -597,13 +635,61 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var setPitchClip = AnimationBuilder.Create()
                 .SetCurve(CatToolsPath.GetRelativePath(context.AvatarRootTransform, _songsTransform), typeof(AudioSource), PropertyName.Pitch, builder =>
                 {
-                    builder.AddKey(new Keyframe(0f, 0f));
-                    builder.AddKey(new Keyframe(1f, 1f));
-                    builder.AddKey(new Keyframe(2f, 2f));
+                    builder.AddKey(0f, 0f);
+                    builder.AddKey(11f, 0.33333f);
+                    builder.AddKey(22f, 0.66667f);
+                    builder.AddKey(33f, 1f);
+                    builder.AddKey(66f, 2f);
+                    builder.AddKey(100f, 3f);
                 }).Build();
             var pitchState = layer.AddState("Pitch", setPitchClip);
             layer.DefaultState = pitchState;
-            pitchState.TimeParameter = entity.speedParameter;
+            pitchState.TimeParameter = SpeedUp;
+        }
+
+        private void FxDanceSpeedControllerLayerBuild(ICatContext context, CatSyncDance entity,
+            ICatAnimatorController controller)
+        {
+            var layer = ICatLayer.Create(context, $"DanceSpeedController_{StringHelper.GetRandomString()}")
+                .AddToController(controller);
+            var clip = AnimationBuilder.Create()
+                .SetCurve(CatToolsPath.GetRelativePath(context.AvatarRootTransform, _speedControllerTransform), 
+                    typeof(Transform), PropertyName.LocalPositionY, builder =>
+                    {
+                        for (var i = 0; i < 11; i++)
+                        {
+                            builder.AddKey(i, -7f + (i * 0.1f));
+                        }
+                    }).Build();
+            var state = layer.AddState("SpeedContactController", clip);
+            layer.DefaultState = state;
+            state.TimeParameter = entity.speedParameter;
+            
+            var toggleLayer = ICatLayer.Create(context, $"SpeedControllerToggleLayer_{StringHelper.GetRandomString()}")
+                .AddToController(controller);
+            var onClip = AnimationBuilder.Create()
+                .SetCurve(CatToolsPath.GetRelativePath(context.AvatarRootTransform, _speedControllerTransform), typeof(GameObject), PropertyName.ObjIsActive, builder =>
+                {
+                    builder.AddKey(1f, 1f);
+                }).Build();
+            var offClip = AnimationBuilder.Create()
+                .SetCurve(CatToolsPath.GetRelativePath(context.AvatarRootTransform, _speedControllerTransform), typeof(GameObject), PropertyName.ObjIsActive, builder =>
+                {
+                    builder.AddKey(0f, 0f);
+                }).Build();
+            var onState = toggleLayer.AddState("ON", onClip);
+            toggleLayer.DefaultState = onState;
+            var offState = toggleLayer.AddState("OFF", offClip);
+            ConditionsBuilder.Create()
+                .Greater(entity.controllerParameterName, 0f)
+                .IfNot(NoOlverlap, true)
+                .Or()
+                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
+                {
+                    builder.Greater(syncParameter.name, 0);
+                    builder.IfNot(NoOlverlap, true);
+                }, (builder, name) => builder.Or())
+                .Build().CreateConditionsTransition(context, controller, onState, offState);
         }
 
         /// <summary>
@@ -641,20 +727,28 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 DynamicIntParameterHandler.CreateDynamicInt(context, fxController, entity.controllerParameterName, null,
                     entity.GetControllerParameterWidth(), false, true, 0,true, true, false);
             }
+            context.GetAvatarDescriptor().ExpressionParameters()
+                .AddIfNameNotEmptyOrNull(entity.syncControllerParameterName, VRCExpressionParameters.ValueType.Bool, 1f, true)
+                .Build();
             
             // 速度和音量参数
             context.GetAvatarDescriptor().ExpressionParameters()
-                .AddIfNameNotEmptyOrNull(entity.speedParameter, VRCExpressionParameters.ValueType.Float, 0.5f, true)
+                .AddIfNameNotEmptyOrNull(entity.speedParameter, VRCExpressionParameters.ValueType.Float, 0.33f, true)
                 .AddIfNameNotEmptyOrNull(entity.volumeParameter, VRCExpressionParameters.ValueType.Float, 0.7f, true)
                 .Build();
             
             // Animator Controller
             var actinController = context.GetAnimatorController(VRCAvatarDescriptor.AnimLayerType.Action);
 
+            fxController.AddParameterIfNot(entity.syncControllerParameterName, AnimatorControllerParameterType.Bool, 1f);
+
             if (!string.IsNullOrEmpty(entity.speedParameter))
             {
-                actinController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.5f);
-                fxController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.5f);
+                actinController.AddParameterIfNot(SpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                actinController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.33f);
+                fxController.AddParameterIfNot(SpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                fxController.AddParameterIfNot(NoOlverlap, AnimatorControllerParameterType.Float, 0.33f);
+                fxController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.33f);
             }
 
             if (!string.IsNullOrEmpty(entity.volumeParameter))
@@ -677,11 +771,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
         }
 
-        private static void SetSyncDanceSpeed(ICatState state, CatSyncDance entity)
+        private static void SetSyncDanceSpeed(ICatState state, CatSyncDance entity, CatSyncDanceEntry entry)
         {
             if (string.IsNullOrEmpty(entity.speedParameter)) return;
-            state.Speed = 2f;
-            state.SpeedParameter = entity.speedParameter;
+            state.Speed = entry.speed;
+            state.SpeedParameter = SpeedUp;
             
             Debug.LogWarning($"state.SpeedParameter {state.SpeedParameter}");
         }
