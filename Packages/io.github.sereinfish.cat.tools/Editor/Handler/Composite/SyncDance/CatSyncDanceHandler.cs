@@ -99,7 +99,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 var parameterNames = new List<string>();
                 for (var i = syncParameterName.suffixStartValue; i < entity.GetBitWidth(syncParameterName.name) + syncParameterName.suffixStartValue; i++)
                 {
-                    parameterNames.Add($"{syncParameterName.name}{i}"); // TODO 待优化为占位格式化
+                    parameterNames.Add($"{syncParameterName.name}{i}");
                 }
                 syncParameterNames.Add(syncParameterName.name, parameterNames.ToArray());
             }
