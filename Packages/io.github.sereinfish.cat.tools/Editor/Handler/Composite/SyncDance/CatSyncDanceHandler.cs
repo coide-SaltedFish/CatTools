@@ -304,6 +304,17 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 animatorLayerControl.goalWeight = 1f;
                 animatorLayerControl.blendDuration = 0.1f;
             });
+            // 初始化时对参数进行设置
+            if (entity.danceStartParameterSetters.Length > 0)
+            {
+                initState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+                {
+                    foreach (var parameterSetter in entity.danceStartParameterSetters)
+                    {
+                        driver.AddParameterDriverSet(parameterSetter.parameterName, parameterSetter.value);
+                    }
+                });
+            }
             // OnlyOneState
             var onlyOneState = layer.AddState("OnlyOne");
             onlyOneState.CreateScriptableObject<VRCAvatarParameterDriver>(avatarParameterDriver =>
@@ -325,6 +336,17 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 playableLayerControl.goalWeight = 0f;
                 playableLayerControl.blendDuration = 0f;
             });
+            // 结束时对参数进行设置
+            if (entity.danceEndParameterSetters.Length > 0)
+            {
+                stopState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+                {
+                    foreach (var parameterSetter in entity.danceEndParameterSetters)
+                    {
+                        driver.AddParameterDriverSet(parameterSetter.parameterName, parameterSetter.value);
+                    }
+                });
+            }
             // 设置wait到init的条件
             var toInitConditions = ConditionsBuilder.Create()
                 .Run(builder =>
@@ -763,6 +785,33 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var actinController = context.GetAnimatorController(VRCAvatarDescriptor.AnimLayerType.Action);
 
             fxController.AddParameterIfNot(entity.syncControllerParameterName, AnimatorControllerParameterType.Bool, 1f);
+            // 需要设置的参数进行注册
+            foreach (var entry in entity.danceStartParameterSetters)
+            {
+                var pType = entry.parameterType switch
+                {
+                    CatSyncDanceParameterSetterEntry.ParameterType.Float => AnimatorControllerParameterType.Float,
+                    CatSyncDanceParameterSetterEntry.ParameterType.Int => AnimatorControllerParameterType.Int,
+                    CatSyncDanceParameterSetterEntry.ParameterType.Bool => AnimatorControllerParameterType.Bool,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                actinController.AddParameterIfNot(entry.parameterName, pType);
+                if (!string.IsNullOrEmpty(entry.sourceParameterName))
+                    actinController.AddParameterIfNot(entry.sourceParameterName, pType);
+            }
+            foreach (var entry in entity.danceEndParameterSetters)
+            {
+                var pType = entry.parameterType switch
+                {
+                    CatSyncDanceParameterSetterEntry.ParameterType.Float => AnimatorControllerParameterType.Float,
+                    CatSyncDanceParameterSetterEntry.ParameterType.Int => AnimatorControllerParameterType.Int,
+                    CatSyncDanceParameterSetterEntry.ParameterType.Bool => AnimatorControllerParameterType.Bool,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                actinController.AddParameterIfNot(entry.parameterName, pType);
+                if (!string.IsNullOrEmpty(entry.sourceParameterName))
+                    actinController.AddParameterIfNot(entry.sourceParameterName, pType);
+            }
 
             if (!string.IsNullOrEmpty(entity.speedParameter))
             {

@@ -62,7 +62,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 .Create(context, $"Toggle/{StringHelper.GetRandomString()}")
                 .AddToController(controller); // 创建层
             // 设置目标默认状态
-            if (entity.isSetDefaultActive) entity.gameObject.SetActive(entity.defaultActive);
+            if (entity.isSetDefaultActive)
+            {
+                foreach (var entityTarget in entity.targets)
+                {
+                    entityTarget.gameObject.SetActive(entity.defaultActive);
+                }
+            }
             // 构建动画
             var clipOn = AnimationBuilder.Create()
                 .Run(builder =>
