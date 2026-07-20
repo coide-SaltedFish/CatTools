@@ -187,6 +187,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 var speedUpCReceiver = speedUpCR.AddComponent<VRCContactReceiver>();
                 speedUpCReceiver.shapeType = ContactBase.ShapeType.Sphere;
                 speedUpCReceiver.radius = 0.5f;
+                speedUpCReceiver.allowSelf = true;
+                speedUpCReceiver.allowOthers = true;
                 speedUpCReceiver.contentTypes = DynamicsUsageFlags.Everything;
                 speedUpCReceiver.collisionTags = new List<string> { entity.speedParameter };
                 speedUpCReceiver.receiverType = ContactReceiver.ReceiverType.Proximity;
@@ -203,6 +205,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 var overlapControllerComponent = overlapController.AddComponent<VRCContactReceiver>();
                 overlapControllerComponent.shapeType = ContactBase.ShapeType.Sphere;
                 overlapControllerComponent.radius = 0.5f;
+                overlapControllerComponent.allowSelf = false;
+                overlapControllerComponent.allowOthers = true;
                 overlapControllerComponent.contentTypes = DynamicsUsageFlags.Everything;
                 overlapControllerComponent.collisionTags = new List<string> { entity.speedParameter };
                 overlapControllerComponent.receiverType = ContactReceiver.ReceiverType.Constant;
