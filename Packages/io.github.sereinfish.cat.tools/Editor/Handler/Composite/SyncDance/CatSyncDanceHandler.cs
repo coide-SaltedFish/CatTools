@@ -41,8 +41,10 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class CatSyncDanceHandler : ComponentHandler<CatSyncDance>
     {
-        private const string SpeedUp = "SpeedUp";
+        private const string OutSpeedUp = "SpeedUp";
+        private const string UseSpeedUp = "UseSpeedUp";
         private const string NoOlverlap = "NoOlverlap";
+        private const string PleaseNextParameterName = "pleasenext_false";
         
         private Dictionary<string, List<string>> _syncParameterNames; // 同步参数名称
         private Transform _contactsTransform; // 同步组件对象
@@ -192,7 +194,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 speedUpCReceiver.contentTypes = DynamicsUsageFlags.Everything;
                 speedUpCReceiver.collisionTags = new List<string> { entity.speedParameter };
                 speedUpCReceiver.receiverType = ContactReceiver.ReceiverType.Proximity;
-                speedUpCReceiver.parameter = SpeedUp;
+                speedUpCReceiver.parameter = OutSpeedUp;
                 // 测距组件
                 var overlapController = new GameObject("OverlapController")
                 {
@@ -373,7 +375,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             toInitConditions.CreateConditionsTransitionTo(context, controller, waitState, initState);
             // next 条件
             var runDanceConditions = ConditionsBuilder.Create()
-                .If("pleasenext_false", false)
+                .If(PleaseNextParameterName, false)
                 .Build();
             // onlyOne to stop
             runDanceConditions.CreateConditionsTransitionTo(context, controller, onlyOneState, stopState);
@@ -398,7 +400,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     })
                     .Build();
                 // 不循环的动作
-                controller.AddParameterIfNot("pleasenext_false", AnimatorControllerParameterType.Bool);
+                controller.AddParameterIfNot(PleaseNextParameterName, AnimatorControllerParameterType.Bool);
                 // 停止条件
                 var stopDanceConditions = ConditionsBuilder.Create()
                     .ForEach(entity.stopDanceParameters, (builder, parameter) =>
@@ -482,6 +484,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             // speed control
             if (string.IsNullOrEmpty(entity.speedParameter).Not())
             {
+                FxDanceSpeedSyncControllerLayerBuild(context, entity, controller);
                 FxMusicPitchControllerLayerBuild(context, entity, controller);
                 FxDanceSpeedControllerLayerBuild(context, entity, controller);
             }
@@ -653,6 +656,51 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             volumeState.TimeParameter = entity.volumeParameter;
         }
         
+        private void FxDanceSpeedSyncControllerLayerBuild(ICatContext context, CatSyncDance entity,
+            ICatAnimatorController controller)
+        {
+            controller.AddParameterIfNot(UseSpeedUp, AnimatorControllerParameterType.Float);
+            controller.AddParameterIfNot(OutSpeedUp, AnimatorControllerParameterType.Float);
+            controller.AddParameterIfNot(PleaseNextParameterName, AnimatorControllerParameterType.Bool);
+            
+            var layer = ICatLayer.Create(context, $"DanceSpeedSyncController_{StringHelper.GetRandomString()}")
+                .AddToController(controller);
+            var syncCondition = ConditionsBuilder.Create()
+                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, parameter) =>
+                {
+                    builder.Equal(entity.controllerParameterName, 0f)
+                        .Greater(parameter.name, 0f);
+                }, (builder, name) => builder.Or()).Build();
+            var localCondition = ConditionsBuilder.Create()
+                .Greater(entity.controllerParameterName, 0f)
+                .Build();
+            var nextCondition = ConditionsBuilder.Create()
+                .If(PleaseNextParameterName, false)
+                .Build();
+            
+            var idleState = layer.AddState("Idle");
+            var syncState = layer.AddState("Sync");
+            var localState = layer.AddState("Local");
+            layer.DefaultState = idleState;
+            
+            // driver
+            syncState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+            {
+                driver.AddParameterDriverCopy(UseSpeedUp, OutSpeedUp);
+            });
+            localState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
+            {
+                driver.AddParameterDriverCopy(UseSpeedUp, entity.speedParameter);
+            });
+            
+            // idle -> sync
+            syncCondition.CreateConditionsTransitionTo(context, controller, idleState, syncState);
+            nextCondition.CreateConditionsTransitionTo(context, controller, syncState, idleState);
+            // idle -> local
+            localCondition.CreateConditionsTransitionTo(context, controller, idleState, localState);
+            nextCondition.CreateConditionsTransitionTo(context, controller, localState, idleState);
+        }
+        
         private void FxMusicPitchControllerLayerBuild(ICatContext context, CatSyncDance entity,
             ICatAnimatorController controller)
         {
@@ -670,7 +718,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 }).Build();
             var pitchState = layer.AddState("Pitch", setPitchClip);
             layer.DefaultState = pitchState;
-            pitchState.TimeParameter = SpeedUp;
+            pitchState.TimeParameter = UseSpeedUp;
         }
 
         private void FxDanceSpeedControllerLayerBuild(ICatContext context, CatSyncDance entity,
@@ -704,9 +752,9 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     builder.AddKey(0f, 0f);
                 }).Build();
             var onState = toggleLayer.AddState("ON", onClip);
-            toggleLayer.DefaultState = onState;
             var offState = toggleLayer.AddState("OFF", offClip);
-            ConditionsBuilder.Create()
+            toggleLayer.DefaultState = offState;
+            var off2On = ConditionsBuilder.Create()
                 .Greater(entity.controllerParameterName, 0f)
                 .IfNot(NoOlverlap, true)
                 .Or()
@@ -715,7 +763,17 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     builder.Greater(syncParameter.name, 0);
                     builder.IfNot(NoOlverlap, true);
                 }, (builder, name) => builder.Or())
-                .Build().CreateConditionsTransition(context, controller, onState, offState);
+                .Build();
+            var on2Off = ConditionsBuilder.Create()
+                .If(NoOlverlap, true)
+                .Or()
+                .Equal(entity.controllerParameterName, 0f)
+                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
+                {
+                    builder.Equal(syncParameter.name, 0f);
+                }).Build();
+            off2On.CreateConditionsTransitionTo(context, controller, offState, onState);
+            on2Off.CreateConditionsTransitionTo(context, controller, onState, offState);
         }
 
         /// <summary>
@@ -819,9 +877,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
             if (!string.IsNullOrEmpty(entity.speedParameter))
             {
-                actinController.AddParameterIfNot(SpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                actinController.AddParameterIfNot(OutSpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                actinController.AddParameterIfNot(UseSpeedUp, AnimatorControllerParameterType.Float, 0.33f);
                 actinController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.33f);
-                fxController.AddParameterIfNot(SpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                fxController.AddParameterIfNot(OutSpeedUp, AnimatorControllerParameterType.Float, 0.33f);
+                fxController.AddParameterIfNot(UseSpeedUp, AnimatorControllerParameterType.Float, 0.33f);
                 fxController.AddParameterIfNot(NoOlverlap, AnimatorControllerParameterType.Float, 0.33f);
                 fxController.AddParameterIfNot(entity.speedParameter, AnimatorControllerParameterType.Float, 0.33f);
             }
@@ -850,7 +910,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         {
             if (string.IsNullOrEmpty(entity.speedParameter)) return;
             state.Speed = entry.speed;
-            state.SpeedParameter = SpeedUp;
+            state.SpeedParameter = UseSpeedUp;
             
             Debug.LogWarning($"state.SpeedParameter {state.SpeedParameter}");
         }
