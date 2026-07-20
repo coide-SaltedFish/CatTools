@@ -342,6 +342,19 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 playableLayerControl.goalWeight = 0f;
                 playableLayerControl.blendDuration = 0f;
             });
+            stopState.CreateScriptableObject<VRCAnimatorTrackingControl>(animatorTrackingControl =>
+            {
+                animatorTrackingControl.trackingHead = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingLeftHand = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingRightHand = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingHip = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingLeftFoot = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingRightFoot = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingLeftFingers = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingRightFingers = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingEyes = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+                animatorTrackingControl.trackingMouth = VRC_AnimatorTrackingControl.TrackingType.Tracking;
+            });
             // 结束时对参数进行设置
             if (entity.danceEndParameterSetters.Length > 0)
             {
