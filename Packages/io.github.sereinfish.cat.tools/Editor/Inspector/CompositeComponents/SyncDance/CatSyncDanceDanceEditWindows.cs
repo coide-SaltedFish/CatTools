@@ -35,7 +35,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _dances;
         private Vector2 _scrollPos;
         private ReorderableList _list;
-        private readonly Dictionary<SerializedProperty, ItemList> _danceLists = new();
+        private readonly Dictionary<string, ItemList> _danceLists = new();
         private SerializedProperty _syncParameterProp;
         
         private CatSyncDanceDanceEditWindows()
@@ -57,7 +57,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 onRemoveCallback = list =>
                 {
                     var index = list.index;
-                    _danceLists.Remove(_dances.GetArrayElementAtIndex(index));
+                    _danceLists.Remove(GetSyncDanceUuid(_dances.GetArrayElementAtIndex(index)));
                     // 调用默认删除逻辑
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 }
@@ -66,9 +66,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 
         private void OnGUI()
         {
+            _target.Update();
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             _list.DoLayoutList();
             EditorGUILayout.EndScrollView();
+            _target.ApplyModifiedProperties();
         }
         
         private float ElementHeightCallback(int index)
@@ -76,11 +78,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             var lineH = EditorGUIUtility.singleLineHeight + 2f;
             var spacing = EditorGUIUtility.standardVerticalSpacing;
             var prop = _dances.GetArrayElementAtIndex(index);
-            if (_danceLists.ContainsKey(prop).Not())
+            if (_danceLists.ContainsKey(GetSyncDanceUuid(prop)).Not())
             {
-                _danceLists[prop] = new ItemList(_dances, index, GetSyncParameterNames);
+                _danceLists[GetSyncDanceUuid(prop)] = new ItemList(_dances, index, GetSyncParameterNames);
             }
-            var itemList = _danceLists[prop];
+            var itemList = _danceLists[GetSyncDanceUuid(prop)];
 
             return (lineH + spacing) * 6 + itemList.AnimClipList.GetHeight() + itemList.MusicClipList.GetHeight();
         }
@@ -100,14 +102,28 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             var loop = prop.FindPropertyRelative("loop");
             var speed = prop.FindPropertyRelative("speed");
 
-            if (_danceLists.ContainsKey(prop).Not())
+            if (_danceLists.ContainsKey(GetSyncDanceUuid(prop)).Not())
             {
-                _danceLists[prop] = new ItemList(_dances, index, GetSyncParameterNames);
+                _danceLists[GetSyncDanceUuid(prop)] = new ItemList(_dances, index, GetSyncParameterNames);
             }
 
-            var itemList = _danceLists[prop];
+            var itemList = _danceLists[GetSyncDanceUuid(prop)];
             
+            EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), danceName, new GUIContent("舞蹈名称"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                var ci = 0;
+                var cName = danceName.stringValue;
+                // 遍历
+                while (DanceNameCheck(cName).Not())
+                {
+                    cName = $"{cName} {ci}";
+                    ci++;
+                }
+
+                if (ci > 0) danceName.stringValue = cName;
+            }
             y += lineH + spacing;
             EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), pathType, new GUIContent("动画路径类型"));
             y += lineH + spacing;
@@ -131,6 +147,25 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             }
 
             return names.ToArray();
+        }
+
+        private string GetSyncDanceUuid(SerializedProperty dance)
+        {
+            return dance.FindPropertyRelative("danceName").stringValue.GetMD5();
+        }
+        
+        private bool DanceNameCheck(string dName)
+        {
+            for (var i = 0; i < _dances.arraySize; i++)
+            {
+                var prop = _dances.GetArrayElementAtIndex(i);
+                var danceName = prop.FindPropertyRelative("danceName");
+                if (danceName.stringValue == dName)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
         
         private class ItemList

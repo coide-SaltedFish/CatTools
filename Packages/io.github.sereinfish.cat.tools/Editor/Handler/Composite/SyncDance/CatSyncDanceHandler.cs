@@ -212,7 +212,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 overlapControllerComponent.contentTypes = DynamicsUsageFlags.Everything;
                 overlapControllerComponent.collisionTags = new List<string> { entity.speedParameter };
                 overlapControllerComponent.receiverType = ContactReceiver.ReceiverType.Constant;
-                overlapControllerComponent.parameter = "NoOverlap";
+                overlapControllerComponent.parameter = NoOlverlap;
                 // 碰撞检测组件
                 var speedControllerCSender = new GameObject("SpeedController")
                 {
@@ -478,8 +478,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 // {
                 //     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
                 // }
-                runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
+                if (!syncDanceEntry.loop)
+                {
+                    runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
+                }
+
                 stopDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, stopState);
+
                 danceStateY += 120;
             }
         }
@@ -689,10 +694,18 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, parameter) =>
                 {
                     builder.Equal(entity.controllerParameterName, 0f)
+                        .If(NoOlverlap, true)
                         .Greater(parameter.name, 0f);
                 }, (builder, name) => builder.Or()).Build();
             var localCondition = ConditionsBuilder.Create()
                 .Greater(entity.controllerParameterName, 0f)
+                .Or()
+                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, parameter) =>
+                {
+                    builder.Equal(entity.controllerParameterName, 0f)
+                        .If(NoOlverlap, false)
+                        .Greater(parameter.name, 0f);
+                }, (builder, name) => builder.Or())
                 .Build();
             var nextCondition = ConditionsBuilder.Create()
                 .If(PleaseNextParameterName, false)
