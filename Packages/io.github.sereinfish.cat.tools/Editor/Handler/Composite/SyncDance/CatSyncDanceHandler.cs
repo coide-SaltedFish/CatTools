@@ -850,6 +850,16 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             context.GetAvatarDescriptor().ExpressionParameters()
                 .AddIfNameNotEmptyOrNull(entity.syncControllerParameterName, VRCExpressionParameters.ValueType.Bool, 1f, true)
                 .Build();
+            if (entity.autoRegisterOptionalParameters)
+            {
+                context.GetAvatarDescriptor().ExpressionParameters()
+                    .AddIfNameNotEmptyOrNull(entity.syncControllerParameterName, VRCExpressionParameters.ValueType.Bool,
+                        1f, true)
+                    .AddIfNameNotEmptyOrNull(entity.volumeParameter, VRCExpressionParameters.ValueType.Float, 0.7f,
+                        true)
+                    .AddIfNameNotEmptyOrNull(entity.speedParameter, VRCExpressionParameters.ValueType.Float, 0.33f, true)
+                    .Build();
+            }
             
             // 速度和音量参数
             context.GetAvatarDescriptor().ExpressionParameters()

@@ -44,6 +44,9 @@ namespace io.github.sereinfish.cat.tools.Components
         // 速度参数，可留空，留空不生成速度控制组件
         public string speedParameter;
         
+        // 自动注册可选参数
+        public bool autoRegisterOptionalParameters = true;
+        
         // 当开始跳舞时禁用 Locomotion 层
         public bool disableLocomotionLayerWhenDancing = true;
         
