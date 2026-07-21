@@ -770,21 +770,22 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             var off2On = ConditionsBuilder.Create()
                 .Greater(entity.controllerParameterName, 0f)
                 .IfNot(NoOlverlap, true)
-                .Or()
-                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
-                {
-                    builder.Greater(syncParameter.name, 0);
-                    builder.IfNot(NoOlverlap, true);
-                }, (builder, name) => builder.Or())
+                // .Or()
+                // .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
+                // {
+                //     builder.Greater(syncParameter.name, 0);
+                //     builder.IfNot(NoOlverlap, true);
+                // }, (builder, name) => builder.Or())
                 .Build();
             var on2Off = ConditionsBuilder.Create()
                 .If(NoOlverlap, true)
                 .Or()
                 .Equal(entity.controllerParameterName, 0f)
-                .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
-                {
-                    builder.Equal(syncParameter.name, 0f);
-                }).Build();
+                // .ForEach(entity.syncDanceConfig.syncParameterNames, (builder, syncParameter) =>
+                // {
+                //     builder.Equal(syncParameter.name, 0f);
+                // })
+                .Build();
             off2On.CreateConditionsTransitionTo(context, controller, offState, onState);
             on2Off.CreateConditionsTransitionTo(context, controller, onState, offState);
         }
