@@ -445,8 +445,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, nextDanceState, exitTime:1f);
                     stopDanceConditions.CreateConditionsTransitionTo(context, controller, nextDanceState, stopState);
                     endDanceState = nextDanceState;
+
+                    if (i1 < syncDanceEntry.clip.Length - 1 && animationClip != null && animationClip.isLooping)
+                    {
+                        Debug.LogError($"Dance clip {animationClip.name} is looping, please check and set the loop option in the animation.");
+                    }
                     
-                    if (syncDanceEntry.loop && animationClip != null && i1 == syncDanceEntry.clip.Length - 1 && syncDanceEntry.loopClip == null)
+                    if (syncDanceEntry.loop && animationClip != null && i1 == syncDanceEntry.clip.Length - 1 /*&& syncDanceEntry.loopClip == null*/)
                     {
                         // 报错，设置为 loop 但是没有设置动画的 loop 选项
                         throw new ArgumentException(
@@ -455,24 +460,26 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     }
                 }
 
-                if (syncDanceEntry.loopClip != null)
-                {
-                    if (!syncDanceEntry.loopClip.isLooping)
-                    {
-                        // 报错，设置为 loop 但是没有设置动画的 loop 选项
-                        throw new ArgumentException(
-                            $"Loop is enabled but animation loop option is not configured: {syncDanceEntry.loopClip.name}"
-                        );
-                    }
-                    var nextDanceState = layer.AddState(syncDanceEntry.danceName + "_loop", syncDanceEntry.loopClip, new Vector3(danceStateX, danceStateY));
-                    SetSyncDanceSpeed(nextDanceState, entity, syncDanceEntry);
-                    runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, nextDanceState, exitTime:1f);
-                    stopDanceConditions.CreateConditionsTransitionTo(context, controller, nextDanceState, stopState);
-                }
-                else if (!syncDanceEntry.loop)
-                {
-                    runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
-                }
+                // if (syncDanceEntry.loopClip != null)
+                // {
+                //     if (!syncDanceEntry.loopClip.isLooping)
+                //     {
+                //         // 报错，设置为 loop 但是没有设置动画的 loop 选项
+                //         throw new ArgumentException(
+                //             $"Loop is enabled but animation loop option is not configured: {syncDanceEntry.loopClip.name}"
+                //         );
+                //     }
+                //     var nextDanceState = layer.AddState(syncDanceEntry.danceName + "_loop", syncDanceEntry.loopClip, new Vector3(danceStateX, danceStateY));
+                //     SetSyncDanceSpeed(nextDanceState, entity, syncDanceEntry);
+                //     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, nextDanceState, exitTime:1f);
+                //     stopDanceConditions.CreateConditionsTransitionTo(context, controller, nextDanceState, stopState);
+                // }
+                // else if (!syncDanceEntry.loop)
+                // {
+                //     runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
+                // }
+                runDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, onlyOneState, exitTime:1f);
+                stopDanceConditions.CreateConditionsTransitionTo(context, controller, endDanceState, stopState);
                 danceStateY += 120;
             }
         }

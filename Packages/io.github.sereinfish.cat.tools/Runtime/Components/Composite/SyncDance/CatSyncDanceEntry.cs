@@ -31,7 +31,7 @@ namespace io.github.sereinfish.cat.tools.Components
         public string danceName; // 舞蹈名称
         public PathType pathType = PathType.Absolute; // 动画合并类型
         public AnimationClip[] clip; // 舞蹈动画 依次播放
-        public AnimationClip loopClip = null; // 循环舞蹈动画
+        // public AnimationClip loopClip = null; // 循环舞蹈动画
         public AudioClip musicClip; // 舞蹈音频
         public bool loop = true; // 是否循环播放
         public float speed = 3f; // 舞蹈播放乘数，默认为 3
