@@ -31,6 +31,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _includeChildrenProp;
         private SerializedProperty _targetPathProp;
         private SerializedProperty _matchExpressionProp;
+        private SerializedProperty _ignoreStringProp;
 
         protected override void Init()
         {
@@ -39,6 +40,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _includeChildrenProp = PropGet(nameof(ConditionalMatchMaterialsSetter.includeChildren));
             _targetPathProp = PropGet(nameof(ConditionalMatchMaterialsSetter.targetPath));
             _matchExpressionProp = PropGet(nameof(ConditionalMatchMaterialsSetter.matchExpression));
+            _ignoreStringProp = PropGet(nameof(ConditionalMatchMaterialsSetter.ignoreString));
         }
 
         protected override void OnDraw()
@@ -48,6 +50,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             EditorGUILayout.PropertyField(_includeChildrenProp);
             EditorGUILayout.PropertyField(_targetPathProp);
             EditorGUILayout.PropertyField(_matchExpressionProp);
+            EditorGUILayout.PropertyField(_ignoreStringProp);
             
             if (GUILayout.Button("打开调试窗口"))
             {

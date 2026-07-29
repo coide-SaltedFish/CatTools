@@ -52,9 +52,10 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 // 路径拼接
                 if (path.EndsWith("/").Not()) path += "/";
                 // 构建材质名称
+                var sourceMaterialName = IgnoreStringHandle(source.name, setter.ignoreString);;
                 var materialName = ReplacePlaceholder(
                     setter.matchExpression,
-                    new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {{"name", source.name}});
+                    new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {{"name", sourceMaterialName}});
                 // 构建正则表达式
                 var pattern = "^" + materialName + "$";
                 var options = RegexOptions.Compiled;
@@ -76,6 +77,14 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             }
 
             return result.ToArray();
+        }
+        
+        /// <summary>
+        /// 对需要忽略的字符串进行处理，移除掉忽略的字符串，以正则的方式进行匹配
+        /// </summary>
+        public static string IgnoreStringHandle(string str, string ignoreString)
+        {
+            return string.IsNullOrEmpty(ignoreString) ? str : Regex.Replace(str, ignoreString, string.Empty);
         }
         
         public static string ReplacePlaceholder(string matchExpression, Dictionary<string, string> context)

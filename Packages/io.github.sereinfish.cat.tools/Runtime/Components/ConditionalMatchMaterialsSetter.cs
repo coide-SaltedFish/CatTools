@@ -29,5 +29,6 @@ namespace io.github.sereinfish.cat.tools.Components
         public bool includeChildren = true; // 是否包含子级
         public string[] targetPath; // 目标路径
         public string matchExpression = "{name}"; // 匹配表达式
+        public string ignoreString; // 忽略指定字符串（设置的字符串部分不参与匹配）
     }
 }
