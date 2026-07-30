@@ -116,7 +116,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 var ci = 0;
                 var cName = danceName.stringValue;
                 // 遍历
-                while (DanceNameCheck(cName).Not())
+                while (DanceNameCheck(index, cName).Not())
                 {
                     cName = $"{cName} {ci}";
                     ci++;
@@ -154,10 +154,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             return dance.FindPropertyRelative("danceName").stringValue.GetMD5();
         }
         
-        private bool DanceNameCheck(string dName)
+        private bool DanceNameCheck(int index, string dName)
         {
             for (var i = 0; i < _dances.arraySize; i++)
             {
+                if (i == index) continue;
                 var prop = _dances.GetArrayElementAtIndex(i);
                 var danceName = prop.FindPropertyRelative("danceName");
                 if (danceName.stringValue == dName)
