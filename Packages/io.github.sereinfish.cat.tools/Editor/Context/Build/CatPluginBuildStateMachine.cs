@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -32,6 +32,7 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
     {
         private readonly VirtualStateMachine _stateMachine;
         private readonly ICatLayer _layer;
+        private readonly CloneContext _cloneContext;
 
         private ICatState _defaultState;
         public ICatState DefaultState
@@ -46,6 +47,18 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
 
         public Vector3 EntryPosition { get => _stateMachine.EntryPosition; set => _stateMachine.EntryPosition = value; }
         public Vector3 AnyStatePosition { get => _stateMachine.AnyStatePosition; set => _stateMachine.AnyStatePosition = value; }
+
+        public ImmutableList<ICatState> States
+        {
+            get
+            {
+                return _stateMachine.States
+                    .Select(s => s.State)
+                    .Where(s => s != null)
+                    .Select(s => (ICatState)new CatPluginBuildState(s, _cloneContext))
+                    .ToImmutableList();
+            }
+        }
         
         private ImmutableList<ICatStateTransition> _anyStateTransitions = ImmutableList<ICatStateTransition>.Empty;
 
@@ -59,10 +72,11 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             }
         }
 
-        public CatPluginBuildStateMachine(ICatLayer layer, VirtualStateMachine stateMachine)
+        public CatPluginBuildStateMachine(ICatLayer layer, VirtualStateMachine stateMachine, CloneContext cloneContext)
         {
             _stateMachine = stateMachine;
             _layer = layer;
+            _cloneContext = cloneContext;
         }
         
         public ICatState AddState(string name, Motion motion = null, Vector3? position = null)

@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -44,6 +44,16 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
             set
             {
                 _controller.parameters = value.Select(t => t.Value).ToArray();
+            }
+        }
+
+        public ImmutableList<ICatLayer> Layers
+        {
+            get
+            {
+                return _controller.layers
+                    .Select(l => (ICatLayer)new CatBakeLayer(l))
+                    .ToImmutableList();
             }
         }
 

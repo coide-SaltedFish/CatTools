@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -19,6 +19,7 @@
 #endregion
 
 using System.Collections.Immutable;
+using System.Linq;
 using nadena.dev.ndmf.animator;
 using UnityEngine;
 
@@ -30,6 +31,16 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         private readonly CloneContext _cloneContext;
         
         public ImmutableDictionary<string, AnimatorControllerParameter> Parameters { get => _controller.Parameters; set => _controller.Parameters = value;}
+
+        public ImmutableList<ICatLayer> Layers
+        {
+            get
+            {
+                return _controller.Layers
+                    .Select(l => CatPluginBuildLayer.Create(_cloneContext, l))
+                    .ToImmutableList();
+            }
+        }
         
         public CatPluginBuildAnimatorController(CloneContext cloneContext, VirtualAnimatorController controller)
         {

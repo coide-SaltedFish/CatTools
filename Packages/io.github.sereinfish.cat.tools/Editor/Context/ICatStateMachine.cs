@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -31,6 +31,7 @@ namespace io.github.sereinfish.cat.tools.editor.context
         public Vector3 AnyStatePosition { get; set; }
         
         public ImmutableList<ICatStateTransition> AnyStateTransitions { get; set; }
+        public ImmutableList<ICatState> States { get; }
         
         public ICatState AddState(string name, [CanBeNull] Motion motion = null, Vector3? position = null);
     }

@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -41,7 +41,7 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
         {
             get
             {
-                _catPluginBuildStateMachine ??= new CatPluginBuildStateMachine(this, _layer.StateMachine);
+                _catPluginBuildStateMachine ??= new CatPluginBuildStateMachine(this, _layer.StateMachine, _cloneContext);
                 return _catPluginBuildStateMachine;
             }
         }
@@ -96,10 +96,25 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             _layer.BlendingMode = AnimatorLayerBlendingMode.Override;
             _cloneContext = context;
         }
+
+        private CatPluginBuildLayer(CloneContext context, VirtualLayer existingLayer)
+        {
+            _layer = existingLayer;
+            _cloneContext = context;
+            _transitions = _stateMachine.AnyStateTransitions
+                .Select(t => (ICatStateTransition)new CatPluginBuildStateTransition(t))
+                .ToImmutableList();
+        }
+
         public static ICatLayer Create(CloneContext context, string name)
         {
             var layer = new CatPluginBuildLayer(context, name);
             return layer;
+        }
+
+        public static ICatLayer Create(CloneContext context, VirtualLayer existingLayer)
+        {
+            return new CatPluginBuildLayer(context, existingLayer);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -27,6 +27,8 @@ namespace io.github.sereinfish.cat.tools.editor.context
     public interface ICatAnimatorController
     {
         public ImmutableDictionary<string, AnimatorControllerParameter> Parameters { get; set; }
+
+        public ImmutableList<ICatLayer> Layers { get; }
 
         public void AddLayer(ICatLayer layer, LayerPriority? priority = null);
 

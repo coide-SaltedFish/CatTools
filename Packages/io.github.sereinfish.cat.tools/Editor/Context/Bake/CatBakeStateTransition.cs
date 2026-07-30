@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -26,7 +26,17 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
 {
     public class CatBakeStateTransition: ICatStateTransition
     {
-        private readonly AnimatorStateTransition _transition = new();
+        private readonly AnimatorStateTransition _transition;
+        
+        public CatBakeStateTransition()
+        {
+            _transition = new AnimatorStateTransition();
+        }
+        
+        public CatBakeStateTransition(AnimatorStateTransition existingTransition)
+        {
+            _transition = existingTransition;
+        }
         
         public ImmutableList<AnimatorCondition> Conditions { get => _transition.conditions.ToImmutableList(); set => _transition.conditions = value.ToArray(); }
         public float? ExitTime { get => _transition.exitTime; set => _transition.exitTime = value ?? 0f; }
