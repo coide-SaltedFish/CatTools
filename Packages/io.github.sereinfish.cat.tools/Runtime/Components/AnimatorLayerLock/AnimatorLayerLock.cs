@@ -1,0 +1,42 @@
+#region LICENSE
+// /*
+//  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
+//  * Copyright (C) 2025  一只大猫条
+//  *
+//  * This program is free software: you can redistribute it and/or modify
+//  * it under the terms of the GNU General Public License as published by
+//  * the Free Software Foundation, either version 3 of the License, or
+//  * (at your option) any later version.
+//  *
+//  * This program is distributed in the hope that it will be useful,
+//  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  * GNU General Public License for more details.
+//  *
+//  * You should have received a copy of the GNU General Public License
+//  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//  */
+#endregion
+
+using io.github.sereinfish.cat.tools.Conditions;
+using io.github.sereinfish.cat.tools.editor.plugin;
+using UnityEngine;
+
+namespace io.github.sereinfish.cat.tools.Components
+{
+    [AddComponentMenu("CatTools/集成组件/AnimatorLayerLock")]
+    public class AnimatorLayerLock : CatAvatarComponent
+    {
+        public override CatBuildPhase BuildPhase => CatBuildPhase.Optimizing;
+        
+        /// <summary>
+        /// 锁定触发条件
+        /// </summary>
+        public ParameterOrConditions conditions;
+
+        /// <summary>
+        /// 要锁定的层配置列表
+        /// </summary>
+        public AnimatorLayerLockEntry[] layerLockEntries;
+    }
+}
