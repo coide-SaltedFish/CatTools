@@ -70,6 +70,11 @@ namespace io.github.sereinfish.cat.tools.editor.context.bake
         public CatBakeStateMachine(AnimatorStateMachine stateMachine)
         {
             _stateMachine = stateMachine;
+            if (_stateMachine.defaultState != null)
+                _defaultState = new CatBakeState(_stateMachine.defaultState);
+            _transitions = _stateMachine.anyStateTransitions
+                .Select(t => (ICatStateTransition)new CatBakeStateTransition(t))
+                .ToImmutableList();
         }
         
         public ICatState AddState(string name, Motion motion = null, Vector3? position = null)

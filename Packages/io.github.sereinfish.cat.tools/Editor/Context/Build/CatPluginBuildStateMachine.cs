@@ -77,6 +77,11 @@ namespace io.github.sereinfish.cat.tools.editor.context.build
             _stateMachine = stateMachine;
             _layer = layer;
             _cloneContext = cloneContext;
+            if (_stateMachine.DefaultState != null)
+                _defaultState = new CatPluginBuildState(_stateMachine.DefaultState, _cloneContext);
+            _anyStateTransitions = _stateMachine.AnyStateTransitions
+                .Select(t => (ICatStateTransition)new CatPluginBuildStateTransition(t))
+                .ToImmutableList();
         }
         
         public ICatState AddState(string name, Motion motion = null, Vector3? position = null)
