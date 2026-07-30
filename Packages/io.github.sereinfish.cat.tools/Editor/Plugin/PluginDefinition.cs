@@ -53,7 +53,14 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
             seq.BeforePlugin("nadena.dev.modular-avatar");
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
-                s.Run(ComponentHandlerPass.Instance);
+                s.Run(ComponentTransformingHandlerPass.Instance);
+            });
+            // 优化阶段组件运行（MA之后）
+            seq = InPhase(BuildPhase.Optimizing);
+            seq.AfterPlugin("nadena.dev.modular-avatar");
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            {
+                s.Run(ComponentOptimizingHandlerPass.Instance);
             });
             // 移除所有 CatComponent
             InPhase(BuildPhase.Optimizing).Run("Remove CatComponent", context =>

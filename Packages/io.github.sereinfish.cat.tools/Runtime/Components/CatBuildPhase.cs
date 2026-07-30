@@ -18,15 +18,13 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.plugin;
-using nadena.dev.ndmf;
-using UnityEngine;
-
-namespace io.github.sereinfish.cat.tools
+namespace io.github.sereinfish.cat.tools.editor.plugin
 {
-	[DefaultExecutionOrder(-9999)]
-    public class CatAvatarComponent : MonoBehaviour, INDMFEditorOnly
+    public enum CatBuildPhase
     {
-	    public virtual CatBuildPhase BuildPhase { get; } = CatBuildPhase.Transforming;
+        Resolving,
+        Generating,
+        Transforming,
+        Optimizing
     }
 }

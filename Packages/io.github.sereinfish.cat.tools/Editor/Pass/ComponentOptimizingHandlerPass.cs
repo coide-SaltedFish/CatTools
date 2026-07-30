@@ -19,13 +19,14 @@
 #endregion
 
 using io.github.sereinfish.cat.tools.editor.context.build;
+using io.github.sereinfish.cat.tools.editor.plugin;
 using io.github.sereinfish.cat.tools.editor.utils;
 using nadena.dev.ndmf;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.pass
 {
-    public class ComponentHandlerPass : Pass<ComponentHandlerPass>
+    public class ComponentOptimizingHandlerPass : Pass<ComponentOptimizingHandlerPass>
     {
         protected override void Execute(BuildContext context)
         {
@@ -39,6 +40,7 @@ namespace io.github.sereinfish.cat.tools.editor.pass
             var catContext = new CatPluginBuildContext(context);
             foreach (var catAvatarComponent in components)
             {
+                if (catAvatarComponent.BuildPhase != CatBuildPhase.Optimizing) continue;
                 foreach (var handler in handlers)
                 {
                     if (!handler.Match(catAvatarComponent)) continue;
