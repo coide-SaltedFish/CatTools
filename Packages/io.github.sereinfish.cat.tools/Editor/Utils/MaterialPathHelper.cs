@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using HarmonyLib;
 using io.github.sereinfish.cat.tools.Components;
 using UnityEditor;
 using UnityEngine;
@@ -99,7 +100,12 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             if (go == null)
                 return new HashSet<Material>();
 
-            return go.GetComponentsInChildren<Renderer>(includeInactive)
+            // var smrs = go.GetComponentsInChildren<MeshRenderer>(includeInactive)
+            //     .Select(s => s as Renderer).ToArray();
+            // smrs = smrs.AddRangeToArray(go.GetComponentsInChildren<SkinnedMeshRenderer>(includeInactive)
+            //     .Select(s => s as Renderer).ToArray());
+            var smrs = go.GetComponentsInChildren<Renderer>(includeInactive);
+            return smrs
                 .SelectMany(r => r.sharedMaterials)
                 .Where(m => m != null)
                 .ToHashSet();

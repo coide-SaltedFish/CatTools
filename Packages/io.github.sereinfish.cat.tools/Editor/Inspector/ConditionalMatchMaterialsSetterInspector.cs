@@ -126,5 +126,12 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _materialHandlerProp.managedReferenceValue = type == null ? null : Activator.CreateInstance(type);
             serializedObject.ApplyModifiedProperties();
         }
+        
+        public static string GetMaterialPath(Material material)
+        {
+            // return GlobalObjectId.GetGlobalObjectIdSlow(material).ToString();
+            var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material));
+            return guid;
+        }
     }
 }

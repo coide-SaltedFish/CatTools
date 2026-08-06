@@ -32,7 +32,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
     public class ConditionalMatchMaterialsSetterDebugWindows : EditorWindow
     {
         private ConditionalMatchMaterialsSetter _target;
-        private Vector2 _scrollPos;
+        private Vector2 _scrollPos = Vector2.zero;
         private Dictionary<Material, List<Material>> _data;
         private readonly Dictionary<Material, bool> _foldoutStates = new();
         private readonly Dictionary<Material, Transform[]> _transformStates = new();
@@ -44,6 +44,12 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
         
         private void OnGUI()
         {
+            if (_target == null)
+            {
+                Close();
+                return;
+            }
+            
             // 顶部显示 匹配规则 刷新按钮
             EditorGUILayout.BeginHorizontal(GUILayout.Height(40));
             EditorGUILayout.LabelField("匹配条件：", GUILayout.Width(60));
@@ -55,6 +61,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                 RefreshData();
             }
             EditorGUILayout.EndHorizontal();
+
+            // 数据尚未初始化（如脚本域重载后），避免空引用报错
+            if (_data == null) return;
             
             // 显示匹配材质列表
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -105,7 +114,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             EditorGUILayout.EndHorizontal();
             GUI.color = oldColor;
             // 设置自动材质处理
-            DrawMaterialHandlerSelector(target);
+            DrawMaterialHandlerSelector(source, target);
             // 多个匹配提示
             if (hasMultipleTargets)
             {
@@ -169,6 +178,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             _transformStates.Clear();
             foreach (var material in _target.gameObject.FindChildMaterials())
             {
+                if (material == null) continue;
                 var targets = _target.FindTargetsMaterial(material);
                 _data.Add(material, new List<Material>(targets));
             }
@@ -178,15 +188,13 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
 
         private void RefreshMaterialHandlerData()
         {
+            if (_target.autoHandleMaterials == null)
+            {
+                _target.autoHandleMaterials = new List<ConditionalMatchMaterialsSetter.AutoHandleMaterial>();
+            }
             _target.autoHandleMaterials = _target.autoHandleMaterials.Where(CheckMaterialHandler).ToList();
-        }
-
-        private void RemoveMaterialHandlerData(Material material)
-        {
-            if (material == null) return;
-            _target.autoHandleMaterials = _target.autoHandleMaterials
-                .Where(handleMaterial => handleMaterial.materialPath != GlobalObjectId.GetGlobalObjectIdSlow(material).ToString())
-                .ToList();
+            // 直接修改了序列化字段，需要标记脏数据，否则脚本刷新后改动会丢失
+            EditorUtility.SetDirty(_target);
         }
 
         /// <summary>
@@ -198,10 +206,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
         {
             foreach (var sourceMaterial in _data.Keys)
             {
-                var sourceMaterialPath = GlobalObjectId.GetGlobalObjectIdSlow(sourceMaterial).ToString();
+                var sourceMaterialPath = ConditionalMatchMaterialsSetterInspector.GetMaterialPath(sourceMaterial);
                 if (autoHandleMaterial.materialPath == sourceMaterialPath) return true;
             }
-
             return false;
         }
 
@@ -209,7 +216,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
         {
             foreach (var targetAutoHandleMaterial in _target.autoHandleMaterials)
             {
-                var sourceMaterialPath = GlobalObjectId.GetGlobalObjectIdSlow(material).ToString();
+                var sourceMaterialPath = ConditionalMatchMaterialsSetterInspector.GetMaterialPath(material);
                 if (targetAutoHandleMaterial.materialPath == sourceMaterialPath)
                 {
                     return targetAutoHandleMaterial;
@@ -218,12 +225,14 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             return null;
         }
         
-        private void DrawMaterialHandlerSelector(Material targetMaterial)
+        private void DrawMaterialHandlerSelector(Material sourceMaterial, Material targetMaterial)
         {
-            // 查找当前材质处理器
-            var autoHandler = GetAutoHandler(targetMaterial);
+            // 查找当前材质处理器（以源材质路径为准，与运行时 Handler 的查找 key 保持一致）
+            var autoHandler = GetAutoHandler(sourceMaterial);
             var currentHandler = autoHandler?.materialHandler;
-            if (currentHandler == null && targetMaterial == null)
+            // 仅当用户对该材质没有做过任何配置（无 entry）且无替换目标时，才默认跟随全局 materialHandler；
+            // 若用户显式配置过（包括设置为 None），则跟随用户设置
+            if (autoHandler == null && targetMaterial == null)
             {
                 currentHandler = _target.materialHandler;
             }
@@ -236,6 +245,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                 {
                     currentName = currentHandler.GetType().Name;
                 }  
+            }
+            else if (autoHandler != null)
+            {
+                // 用户显式将该材质处理器设置为 None
+                currentName = "None";
             }
             var popupStyle = new GUIStyle(EditorStyles.popup);
             if (currentName == "未配置材质处理器")
@@ -251,17 +265,18 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             
             if (GUILayout.Button($"{currentName}", popupStyle))
             {
-                ShowMaterialHandlerMenu(autoHandler, targetMaterial);
+                ShowMaterialHandlerMenu(autoHandler, sourceMaterial);
             }
         }
         
-        private void ShowMaterialHandlerMenu(ConditionalMatchMaterialsSetter.AutoHandleMaterial autoHandle, Material targetMaterial)
+        private void ShowMaterialHandlerMenu(ConditionalMatchMaterialsSetter.AutoHandleMaterial autoHandle, Material sourceMaterial)
         {
             var menu = new GenericMenu();
 
-            menu.AddItem(new GUIContent("None"), autoHandle == null, () =>
+            // 只有显式配置过 entry 且 handler 为 null 才算选择了 None
+            menu.AddItem(new GUIContent("None"), autoHandle is { materialHandler: null }, () =>
             {
-                SetHandler(null, targetMaterial);
+                SetHandler(null, sourceMaterial);
             });
 
 
@@ -273,23 +288,28 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                 var itemName = materialHandler.HandlerName;
                 
                 if (string.IsNullOrEmpty(itemName)) itemName = materialHandler.GetType().Name;
+
+                var isSelected = autoHandle?.materialHandler != null &&
+                                 autoHandle.materialHandler.GetType() == materialHandler.GetType();
                 
-                menu.AddItem(new GUIContent(itemName), false, () => 
+                menu.AddItem(new GUIContent(itemName), isSelected, () => 
                 {
-                    SetHandler(materialHandler.GetType(), targetMaterial);
+                    SetHandler(materialHandler.GetType(), sourceMaterial);
                 });
             }
             menu.ShowAsContext();
         }
         
-        private void SetHandler(Type type, Material targetMaterial)
+        private void SetHandler(Type type, Material sourceMaterial)
         {
-            var autoHandler = GetAutoHandler(targetMaterial);
+            Debug.LogWarning($"GetMaterialPath: {sourceMaterial?.name} -> {ConditionalMatchMaterialsSetterInspector.GetMaterialPath(sourceMaterial)}");
+            
+            var autoHandler = GetAutoHandler(sourceMaterial);
             if (autoHandler == null)
             {
                 autoHandler = new ConditionalMatchMaterialsSetter.AutoHandleMaterial
                 {
-                    materialPath = GlobalObjectId.GetGlobalObjectIdSlow(targetMaterial).ToString(),
+                    materialPath = ConditionalMatchMaterialsSetterInspector.GetMaterialPath(sourceMaterial),
                     materialHandler = type == null ? null : Activator.CreateInstance(type) as ConditionalMatchMaterialsSetter.IMaterialHandler
                 };
                 _target.autoHandleMaterials.Add(autoHandler);
@@ -300,6 +320,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                     ? null
                     : Activator.CreateInstance(type) as ConditionalMatchMaterialsSetter.IMaterialHandler;
             }
+            // 直接修改了序列化字段，需要标记脏数据，否则脚本刷新后改动会丢失
+            EditorUtility.SetDirty(_target);
         }
         
         public static void ShowWindow(ConditionalMatchMaterialsSetter target)
