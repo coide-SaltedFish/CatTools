@@ -61,7 +61,29 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                             if (targetMaterials.Length == 0)
                             {
                                 Debug.LogWarning($"未找到目标材质，在 {relativePath} 的 {itemSharedMaterial}");
-                                continue;
+                                // 如果启用材质处理脚本，则尝试处理材质
+                                var autoHandler = GetAutoHandler(entity, itemSharedMaterial);
+                                // 当启用材质处理脚本，且未找到目标材质时，尝试使用自动处理材质
+                                if ((autoHandler == null && entity.materialHandler != null) ||
+                                    autoHandler is { materialHandler: not null })
+                                {
+                                    var handler = autoHandler?.materialHandler ?? entity.materialHandler;
+                                    Material output = null;
+                                    try
+                                    {
+                                        output = handler.HandleMaterial(itemSharedMaterial);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Debug.LogError($"材质处理失败：{e.Message}");
+                                    }
+                                    if (output == null) continue;
+                                    targetMaterials = new[] { output };
+                                }
+                                else
+                                {
+                                    continue;
+                                }
                             }
 
                             var targetMaterial = targetMaterials[0];
@@ -112,6 +134,19 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             entity.conditions.CreateConditionsTransitionTo(context, controller, emptyState, onState);
             entity.conditions.CreateConditionsTransitionInverseTo(context, controller, onState, defaultState);
             entity.conditions.CreateConditionsTransitionInverseTo(context, controller, defaultState, emptyState);
+        }
+        
+        private ConditionalMatchMaterialsSetter.AutoHandleMaterial GetAutoHandler(ConditionalMatchMaterialsSetter entity, Material material)
+        {
+            foreach (var targetAutoHandleMaterial in entity.autoHandleMaterials)
+            {
+                var sourceMaterialPath = GlobalObjectId.GetGlobalObjectIdSlow(material).ToString();
+                if (targetAutoHandleMaterial.materialPath == sourceMaterialPath)
+                {
+                    return targetAutoHandleMaterial;
+                }
+            }
+            return null;
         }
     }
 }

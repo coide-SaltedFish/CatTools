@@ -18,6 +18,7 @@
 //  */
 #endregion
 
+using System;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.inspector.window;
 using UnityEditor;
@@ -32,6 +33,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _targetPathProp;
         private SerializedProperty _matchExpressionProp;
         private SerializedProperty _ignoreStringProp;
+        private SerializedProperty _materialHandlerProp;
 
         protected override void Init()
         {
@@ -41,6 +43,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _targetPathProp = PropGet(nameof(ConditionalMatchMaterialsSetter.targetPath));
             _matchExpressionProp = PropGet(nameof(ConditionalMatchMaterialsSetter.matchExpression));
             _ignoreStringProp = PropGet(nameof(ConditionalMatchMaterialsSetter.ignoreString));
+            _materialHandlerProp = PropGet(nameof(ConditionalMatchMaterialsSetter.materialHandler));
         }
 
         protected override void OnDraw()
@@ -52,10 +55,76 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             EditorGUILayout.PropertyField(_matchExpressionProp);
             EditorGUILayout.PropertyField(_ignoreStringProp);
             
+            DrawMaterialHandlerSelector();
+            
             if (GUILayout.Button("打开调试窗口"))
             {
                 ConditionalMatchMaterialsSetterDebugWindows.ShowWindow(target as ConditionalMatchMaterialsSetter);
             }
+        }
+        
+        private void DrawMaterialHandlerSelector()
+        {
+            var currentName = "未配置材质处理器";
+            if (_materialHandlerProp.managedReferenceValue != null)
+            {
+                var handler = _materialHandlerProp.managedReferenceValue as ConditionalMatchMaterialsSetter.IMaterialHandler;
+                if (handler != null)
+                {
+                    currentName = handler.HandlerName;
+                    if (string.IsNullOrEmpty(currentName))
+                    {
+                        currentName = _materialHandlerProp.managedReferenceValue
+                            .GetType()
+                            .Name;
+                    }
+                }
+                else
+                {
+                    currentName = _materialHandlerProp.managedReferenceValue
+                        .GetType()
+                        .Name;
+                }
+            }
+            if (GUILayout.Button($"{currentName}", EditorStyles.popup))
+            {
+                ShowMaterialHandlerMenu();
+            }
+        }
+        
+        private void ShowMaterialHandlerMenu()
+        {
+            var menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent("None"), _materialHandlerProp.managedReferenceValue == null, () =>
+            {
+                SetHandler(null);
+            });
+
+
+            // 点击这里以后才扫描
+            var handlers = ConditionalMatchMaterialsSetter.GetMaterialHandlers();
+            Debug.Log("ConditionalMatchMaterialsSetter: 执行 IMaterialHandler 扫描...");
+
+            foreach (var materialHandler in handlers)
+            {
+                Debug.Log($"ConditionalMatchMaterialsSetter: -- {materialHandler.HandlerName} -> {materialHandler.GetType()}");
+                var itemName = materialHandler.HandlerName;
+                
+                if (string.IsNullOrEmpty(itemName)) itemName = materialHandler.GetType().Name;
+                
+                menu.AddItem(new GUIContent(itemName), false, () => 
+                {
+                    SetHandler(materialHandler.GetType());
+                });
+            }
+            menu.ShowAsContext();
+        }
+        
+        private void SetHandler(Type type)
+        {
+            _materialHandlerProp.managedReferenceValue = type == null ? null : Activator.CreateInstance(type);
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

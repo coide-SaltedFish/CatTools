@@ -36,7 +36,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             return sm;
         }
         
-        public static VirtualState AddState(this VirtualLayer layer, string name, VirtualMotion? motion = null, Vector3? position = null)
+        public static VirtualState AddState(this VirtualLayer layer, string name, VirtualMotion motion = null, Vector3? position = null)
         {
             return layer.GetStateMachine().AddState(name, motion, position);
         }

@@ -25,6 +25,7 @@ using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.utils;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector.window
 {
@@ -103,6 +104,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
 
             EditorGUILayout.EndHorizontal();
             GUI.color = oldColor;
+            // 设置自动材质处理
+            DrawMaterialHandlerSelector(target);
             // 多个匹配提示
             if (hasMultipleTargets)
             {
@@ -168,6 +171,134 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
             {
                 var targets = _target.FindTargetsMaterial(material);
                 _data.Add(material, new List<Material>(targets));
+            }
+            // 刷新材质处理器数据
+            RefreshMaterialHandlerData();
+        }
+
+        private void RefreshMaterialHandlerData()
+        {
+            _target.autoHandleMaterials = _target.autoHandleMaterials.Where(CheckMaterialHandler).ToList();
+        }
+
+        private void RemoveMaterialHandlerData(Material material)
+        {
+            if (material == null) return;
+            _target.autoHandleMaterials = _target.autoHandleMaterials
+                .Where(handleMaterial => handleMaterial.materialPath != GlobalObjectId.GetGlobalObjectIdSlow(material).ToString())
+                .ToList();
+        }
+
+        /// <summary>
+        /// 检查材质处理器配置是否还可用
+        /// </summary>
+        /// <param name="autoHandleMaterial"></param>
+        /// <returns></returns>
+        private bool CheckMaterialHandler(ConditionalMatchMaterialsSetter.AutoHandleMaterial autoHandleMaterial)
+        {
+            foreach (var sourceMaterial in _data.Keys)
+            {
+                var sourceMaterialPath = GlobalObjectId.GetGlobalObjectIdSlow(sourceMaterial).ToString();
+                if (autoHandleMaterial.materialPath == sourceMaterialPath) return true;
+            }
+
+            return false;
+        }
+
+        private ConditionalMatchMaterialsSetter.AutoHandleMaterial GetAutoHandler(Material material)
+        {
+            foreach (var targetAutoHandleMaterial in _target.autoHandleMaterials)
+            {
+                var sourceMaterialPath = GlobalObjectId.GetGlobalObjectIdSlow(material).ToString();
+                if (targetAutoHandleMaterial.materialPath == sourceMaterialPath)
+                {
+                    return targetAutoHandleMaterial;
+                }
+            }
+            return null;
+        }
+        
+        private void DrawMaterialHandlerSelector(Material targetMaterial)
+        {
+            // 查找当前材质处理器
+            var autoHandler = GetAutoHandler(targetMaterial);
+            var currentHandler = autoHandler?.materialHandler;
+            if (currentHandler == null && targetMaterial == null)
+            {
+                currentHandler = _target.materialHandler;
+            }
+
+            var currentName = "未配置材质处理器";
+            if (currentHandler != null)
+            {
+                currentName = currentHandler.HandlerName;
+                if (string.IsNullOrEmpty(currentName))
+                {
+                    currentName = currentHandler.GetType().Name;
+                }  
+            }
+            var popupStyle = new GUIStyle(EditorStyles.popup);
+            if (currentName == "未配置材质处理器")
+            {
+                popupStyle = new GUIStyle(EditorStyles.popup)
+                {
+                    normal =
+                    {
+                        textColor = Color.yellow
+                    }
+                };
+            }
+            
+            if (GUILayout.Button($"{currentName}", popupStyle))
+            {
+                ShowMaterialHandlerMenu(autoHandler, targetMaterial);
+            }
+        }
+        
+        private void ShowMaterialHandlerMenu(ConditionalMatchMaterialsSetter.AutoHandleMaterial autoHandle, Material targetMaterial)
+        {
+            var menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent("None"), autoHandle == null, () =>
+            {
+                SetHandler(null, targetMaterial);
+            });
+
+
+            // 点击这里以后才扫描
+            var handlers = ConditionalMatchMaterialsSetter.GetMaterialHandlers();
+
+            foreach (var materialHandler in handlers)
+            {
+                var itemName = materialHandler.HandlerName;
+                
+                if (string.IsNullOrEmpty(itemName)) itemName = materialHandler.GetType().Name;
+                
+                menu.AddItem(new GUIContent(itemName), false, () => 
+                {
+                    SetHandler(materialHandler.GetType(), targetMaterial);
+                });
+            }
+            menu.ShowAsContext();
+        }
+        
+        private void SetHandler(Type type, Material targetMaterial)
+        {
+            var autoHandler = GetAutoHandler(targetMaterial);
+            if (autoHandler == null)
+            {
+                autoHandler = new ConditionalMatchMaterialsSetter.AutoHandleMaterial
+                {
+                    materialPath = GlobalObjectId.GetGlobalObjectIdSlow(targetMaterial).ToString(),
+                    materialHandler = type == null ? null : Activator.CreateInstance(type) as ConditionalMatchMaterialsSetter.IMaterialHandler
+                };
+                _target.autoHandleMaterials.Add(autoHandler);
+            }
+            else
+            {
+                autoHandler.materialHandler = type == null
+                    ? null
+                    : Activator.CreateInstance(type) as ConditionalMatchMaterialsSetter.IMaterialHandler;
             }
         }
         

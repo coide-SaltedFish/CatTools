@@ -18,7 +18,10 @@
 //  */
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
@@ -30,5 +33,48 @@ namespace io.github.sereinfish.cat.tools.Components
         public string[] targetPath; // 目标路径
         public string matchExpression = "{name}"; // 匹配表达式
         public string ignoreString; // 忽略指定字符串（设置的字符串部分不参与匹配）
+        [SerializeReference]
+        public IMaterialHandler materialHandler; // 全局的材质处理接口
+
+        public List<AutoHandleMaterial> autoHandleMaterials; // 需要使用处理脚本自动处理的材质
+        
+        [System.Serializable]
+        public class AutoHandleMaterial
+        {
+            public string materialPath; // 材质路径
+            // public string objectPath; // 材质所在对象的层级路径
+            [SerializeReference]
+            public IMaterialHandler materialHandler; // 单独材质处理接口，可为空
+        }
+        
+        /// <summary>
+        /// 材质处理接口
+        /// </summary>
+        public interface IMaterialHandler
+        {
+            public string HandlerName { get; }
+            public Material HandleMaterial(Material input);
+        }
+        
+        /// <summary>
+        /// 扫描所有实现了材质处理的类
+        /// </summary>
+        /// <returns></returns>
+        public static IMaterialHandler[] GetMaterialHandlers()
+        {
+            var handlerType = typeof(IMaterialHandler);
+            return AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(a => {
+                    try { return a.GetTypes(); }
+                    catch (ReflectionTypeLoadException e) { return e.Types.Where(x => x != null); }
+                })
+                .Where(t => 
+                    handlerType.IsAssignableFrom(t) &&
+                    !t.IsInterface && !t.IsAbstract
+                )
+                .Select(t => (IMaterialHandler)Activator.CreateInstance(t)!)
+                .ToArray();
+        }
     }
 }
