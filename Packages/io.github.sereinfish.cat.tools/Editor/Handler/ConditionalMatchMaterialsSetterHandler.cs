@@ -21,8 +21,8 @@
 using System;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
-using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using PropertyName = io.github.sereinfish.cat.tools.editor.animator.builder.PropertyName;
@@ -31,15 +31,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class ConditionalMatchMaterialsSetterHandler : ComponentHandler<ConditionalMatchMaterialsSetter>
     {
-        public override void Execute(ICatContext context, ConditionalMatchMaterialsSetter entity)
+        public override void Execute(BuildContext context, ConditionalMatchMaterialsSetter entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
             var controller = context.GetAnimatorController(entity.layerType);
-            var layer = ICatLayer
-                .Create(context, $"ConditionalMatchMaterialsSetter/{StringHelper.GetRandomString()}")
-                .AddToController(controller); // 创建层
-            var sm = layer.StateMachine;
+            var layer = controller.AddLayer($"ConditionalMatchMaterialsSetter/{StringHelper.GetRandomString()}");
+            var sm = layer.GetStateMachine();
 
             var onClip = AnimationBuilder.Create()
                 .Run(builder =>
@@ -78,7 +76,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                             });
                         }
                     }
-                }).Build();
+                }).Build().ToVirtualMotion(context);
 
             var defaultClip = AnimationBuilder.Create()
                 .Run(builder =>
@@ -103,7 +101,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                             });
                         }
                     }
-                }).Build();
+                }).Build().ToVirtualMotion(context);
 
             var onState = sm.AddState("on", onClip);
             var defaultState = sm.AddState("default", defaultClip);

@@ -21,9 +21,8 @@
 using System;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.Conditions.Build;
-using io.github.sereinfish.cat.tools.editor.context;
-using io.github.sereinfish.cat.tools.editor.context.Extensions;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -32,14 +31,13 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class ConditionalParameterSetterHandler : ComponentHandler<ConditionalParameterSetter>
     {
-        public override void Execute(ICatContext context, ConditionalParameterSetter entity)
+        public override void Execute(BuildContext context, ConditionalParameterSetter entity)
         {
             var controller = context.GetAnimatorController(entity.layerType);
-            var layer = ICatLayer.Create(context, $"CatConditionalParameterSetter_{StringHelper.GetRandomString()}")
-                .AddToController(controller);
+            var layer = controller.AddLayer($"CatConditionalParameterSetter_{StringHelper.GetRandomString()}");
             // 构建状态
             var emptyState = layer.AddState("Empty");
-            layer.DefaultState = emptyState;
+            layer.GetStateMachine().DefaultState = emptyState;
             var setState = layer.AddState("Set");
             setState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
             {

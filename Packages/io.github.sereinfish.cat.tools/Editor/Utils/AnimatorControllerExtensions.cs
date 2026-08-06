@@ -21,7 +21,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using HarmonyLib;
-using io.github.sereinfish.cat.tools.editor.context;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -56,7 +55,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             controller.parameters = controller.parameters.AddItem(parameter).ToArray();
         }
         
-        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
+        public static VirtualAnimatorController AddParameterIfNot(this VirtualAnimatorController controller,
             AnimatorControllerParameter parameter)
         {
             var param = controller.Parameters.GetValueOrDefault(parameter.name);;
@@ -68,7 +67,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             return controller;
         }
         
-        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
+        public static VirtualAnimatorController AddParameterIfNot(this VirtualAnimatorController controller,
             string name, AnimatorControllerParameterType type, float defaultValue = 0f)
         {
             controller.AddParameterIfNot(new AnimatorControllerParameter
@@ -83,7 +82,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             return controller;
         }
         
-        public static ICatAnimatorController AddParameterIfNot(this ICatAnimatorController controller,
+        public static VirtualAnimatorController AddParameterIfNot(this VirtualAnimatorController controller,
             string name, bool defaultValue)
         {
             controller.AddParameterIfNot(new AnimatorControllerParameter

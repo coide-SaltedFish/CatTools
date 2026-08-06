@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
-using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -33,15 +33,14 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class LightControllerHandler: ComponentHandler<LightController>
     {
-        public override void Execute(ICatContext context, LightController entity)
+        public override void Execute(BuildContext context, LightController entity)
         {
             var controller = context.GetAnimatorController(VRCAvatarDescriptor.AnimLayerType.FX);
-            var layer = ICatLayer.Create(context, $"CatLightController_{StringHelper.GetRandomString()}")
-                .AddToController(controller);
+            var layer = controller.AddLayer($"CatLightController_{StringHelper.GetRandomString()}");
             controller.AddParameterIfNot(entity.controllerParameterName, AnimatorControllerParameterType.Float, 0.5f);
-            var animClip = CreateLightLimitAnimationClip(context, entity);
+            var animClip = CreateLightLimitAnimationClip(context, entity).ToVirtualMotion(context);
             layer.AddState("LightLimit", animClip)
-                .SetTimeParameter(entity.controllerParameterName);
+                .TimeParameter = entity.controllerParameterName;
         }
         
         private List<Transform> GetLightTransforms(LightController entity)
@@ -52,7 +51,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             return entity.GetComponentsInChildren<Transform>(true).ToList();
         }
         
-        private AnimationClip CreateLightLimitAnimationClip(ICatContext context, LightController entity)
+        private AnimationClip CreateLightLimitAnimationClip(BuildContext context, LightController entity)
         {
             return AnimationBuilder.Create()
                 .Run(builder =>

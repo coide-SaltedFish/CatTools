@@ -22,7 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using io.github.sereinfish.cat.tools.Conditions;
-using io.github.sereinfish.cat.tools.editor.context;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -30,8 +31,8 @@ namespace io.github.sereinfish.cat.tools.editor.utils
 {
     public static class ParameterConditionsExtensions
     {
-        public static void CreateConditionsTransition(this ParameterOrConditions conditions, ICatContext context,
-            ICatAnimatorController controller, ICatState onState, ICatState offState)
+        public static void CreateConditionsTransition(this ParameterOrConditions conditions, BuildContext context,
+            VirtualAnimatorController controller, VirtualState onState, VirtualState offState)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -56,7 +57,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             // 遍历或条件中的与条件生成过渡
             foreach (var entry in conditions)
             {
-                var tOnState = ICatStateTransition.Create(context);
+                var tOnState = context.CreateVirtualStateTransition();
                 tOnState.SetDestination(onState);
                 tOnState.ExitTime = null;
                 tOnState.Duration = 0;
@@ -94,7 +95,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             
             foreach (var entries in conditionsOff)
             {
-                var tOffState = ICatStateTransition.Create(context);
+                var tOffState = context.CreateVirtualStateTransition();
                 tOffState.SetDestination(offState);
                 tOffState.ExitTime = null;
                 tOffState.Duration = 0;
@@ -123,7 +124,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         /// <param name="target"></param>
         /// <param name="exitTime"></param>
         public static void CreateConditionsTransitionTo(this ParameterOrConditions conditions,
-            ICatContext context, ICatAnimatorController controller, ICatState state, ICatState target,
+            BuildContext context, VirtualAnimatorController controller, VirtualState state, VirtualState target,
             float? exitTime = null)
         {
             // 检查参数
@@ -147,7 +148,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             
             foreach (var entry in conditions)
             {
-                var transition = ICatStateTransition.Create(context);
+                var transition = context.CreateVirtualStateTransition();
                 transition.SetDestination(target);
                 transition.ExitTime = exitTime;
                 transition.Duration = 0;
@@ -175,7 +176,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         /// <param name="offState"></param>
         /// <param name="exitTime"></param>
         public static void CreateConditionsTransitionInverseTo(this ParameterOrConditions conditions,
-            ICatContext context, ICatAnimatorController controller, ICatState onState, ICatState offState, float? exitTime = null)
+            BuildContext context, VirtualAnimatorController controller, VirtualState onState, VirtualState offState, float? exitTime = null)
         {
             conditions = conditions.Inverse();
             
@@ -200,7 +201,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             
             foreach (var entries in conditions)
             {
-                var tOffState = ICatStateTransition.Create(context);
+                var tOffState = context.CreateVirtualStateTransition();
                 tOffState.SetDestination(offState);
                 tOffState.ExitTime = exitTime;
                 tOffState.Duration = 0;
@@ -220,7 +221,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         }
 
         public static void CreateAnyStateConditionsTransition(this ParameterOrConditions conditions,
-            ICatContext context, ICatAnimatorController controller, ICatLayer layer, ICatState state, float? exitTime = null)
+            BuildContext context, VirtualAnimatorController controller, VirtualLayer layer, VirtualState state, float? exitTime = null)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -243,7 +244,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             
             foreach (var entry in conditions)
             {
-                var transition = ICatStateTransition.Create(context);
+                var transition = context.CreateVirtualStateTransition();
                 transition.SetDestination(state);
                 transition.ExitTime = exitTime;
                 transition.Duration = 0;
@@ -258,12 +259,12 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                     });
                 }
 
-                layer.StateMachine.AnyStateTransitions = layer.StateMachine.AnyStateTransitions.Add(transition);
+                layer.GetStateMachine().AnyStateTransitions = layer.GetStateMachine().AnyStateTransitions.Add(transition);
             }
         }
         
         public static void CreateConditionsTransitionToExit(this ParameterOrConditions conditions,
-            ICatContext context, ICatAnimatorController controller, ICatState state,
+            BuildContext context, VirtualAnimatorController controller, VirtualState state,
             float? exitTime = null)
         {
             // 检查参数
@@ -287,7 +288,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             
             foreach (var entry in conditions)
             {
-                var transition = ICatStateTransition.Create(context);
+                var transition = context.CreateVirtualStateTransition();
                 transition.SetExitDestination();
                 transition.ExitTime = exitTime;
                 transition.Duration = 0;

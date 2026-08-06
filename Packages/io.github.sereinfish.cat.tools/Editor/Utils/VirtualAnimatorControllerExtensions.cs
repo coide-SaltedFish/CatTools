@@ -1,4 +1,4 @@
-#region LICENSE
+﻿#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -18,21 +18,21 @@
 //  */
 #endregion
 
-using System.Collections.Immutable;
-using JetBrains.Annotations;
-using UnityEngine;
+using nadena.dev.ndmf.animator;
 
-namespace io.github.sereinfish.cat.tools.editor.context
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    public interface ICatStateMachine
+    public static class VirtualAnimatorControllerExtensions
     {
-        public ICatState DefaultState { get; set; }
-        public Vector3 EntryPosition { get; set; }
-        public Vector3 AnyStatePosition { get; set; }
+        public static VirtualLayer AddLayer(this VirtualAnimatorController controller, string name, LayerPriority priority = default)
+        {
+            return controller.AddLayer(priority, name);
+        }
         
-        public ImmutableList<ICatStateTransition> AnyStateTransitions { get; set; }
-        public ImmutableList<ICatState> States { get; }
-        
-        public ICatState AddState(string name, [CanBeNull] Motion motion = null, Vector3? position = null);
+        public static VirtualLayer AddLayer(this VirtualAnimatorController controller, VirtualLayer layer, LayerPriority priority = default)
+        {
+            controller.AddLayer(priority, layer);
+            return layer;
+        }
     }
 }

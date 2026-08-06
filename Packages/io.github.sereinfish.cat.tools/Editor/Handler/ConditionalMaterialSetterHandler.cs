@@ -24,15 +24,15 @@ using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
 using io.github.sereinfish.cat.tools.editor.animator.builder.extensions;
-using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class ConditionalMaterialSetterHandler : ComponentHandler<ConditionalMaterialSetter>
     {
-        public override void Execute(ICatContext context, ConditionalMaterialSetter entity)
+        public override void Execute(BuildContext context, ConditionalMaterialSetter entity)
         {
             if (entity.setters == null || entity.setters.Length == 0)
             {
@@ -41,8 +41,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
 
             var controller = context.GetAnimatorController(entity.layerType);
-            var layer = ICatLayer.Create(context, $"ConditionalMaterialSetter_{StringHelper.GetRandomString()}")
-                .AddToController(controller);
+            var layer = controller.AddLayer($"ConditionalMaterialSetter_{StringHelper.GetRandomString()}");
 
             var defaultClip = entity.restoreToggle
                 ? AnimationBuilder.Create()
@@ -55,11 +54,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                                 target = materialSetter.target, slot = materialSetter.slot,
                                 material = smr.sharedMaterials[materialSetter.slot]
                             }).ToArray())
-                    .Build()
+                    .Build().ToVirtualMotion(context)
                 : null;
             var setterClip = AnimationBuilder.Create()
                 .SetSkinnedMeshRendererMaterials(context.AvatarRootTransform, entity.setters)
-                .Build();
+                .Build().ToVirtualMotion(context);
 
             var defaultState = layer.AddState("Default", defaultClip);
             var setterState = layer.AddState("Setter", setterClip);

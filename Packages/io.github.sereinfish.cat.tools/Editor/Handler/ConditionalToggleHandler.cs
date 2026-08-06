@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
-using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.localization;
@@ -34,7 +33,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class ConditionalToggleHandler : ComponentHandler<ConditionalToggle>
     {
-        public override void Execute(ICatContext context, ConditionalToggle entity)
+        public override void Execute(BuildContext context, ConditionalToggle entity)
         {
             if (entity is SelfConditionalToggle) entity.targets = new[] { entity.gameObject.transform };
             if (entity.targets == null || entity.targets.Length == 0 || entity.targets.All(t => t == null))
@@ -58,9 +57,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
             
             var controller = context.GetAnimatorController(entity.layerType); // 获取动画控制器
-            var layer = ICatLayer
-                .Create(context, $"Toggle/{StringHelper.GetRandomString()}")
-                .AddToController(controller); // 创建层
+            var layer = controller.AddLayer($"Toggle/{StringHelper.GetRandomString()}");
             // 设置目标默认状态
             if (entity.isSetDefaultActive)
             {
@@ -81,7 +78,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         });
                     }
                 })
-                .Build();
+                .Build().ToVirtualMotion(context);
             var clipOff = entity.reverseToggle
                 ? AnimationBuilder.Create()
                     .Run(builder =>
@@ -94,7 +91,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                             });
                         }
                     })
-                    .Build()
+                    .Build().ToVirtualMotion(context)
                 : null;
             // 创建状态
             var stateOn = layer.AddState("On", clipOn);

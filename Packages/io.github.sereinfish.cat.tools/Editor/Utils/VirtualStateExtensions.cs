@@ -18,27 +18,20 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.Conditions;
+using System;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 
-namespace io.github.sereinfish.cat.tools.editor.context
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    public interface ICatBlendTree
+    public static class VirtualStateExtensions
     {
-        /// <summary>
-        /// 检查是否可以加入BlendTree
-        /// </summary>
-        /// <param name="conditions"></param>
-        /// <returns></returns>
-        public bool Check(ParameterOrConditions conditions);
-        
-        /// <summary>
-        /// 添加动画片段
-        /// </summary>
-        public bool Add(ParameterOrConditions conditions, AnimationClip clip);
-
-        public string[] GetDirectBlendParameters();
-        
-        public T GetBlendTree<T>() where T : class;
+        public static T CreateScriptableObject<T>(this VirtualState state, Action<T> setup = null) where T : StateMachineBehaviour 
+        {
+            var obj = ScriptableObject.CreateInstance<T>();
+            setup?.Invoke(obj);
+            state.Behaviours = state.Behaviours.Add(obj);
+            return obj;
+        }
     }
 }

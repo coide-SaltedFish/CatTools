@@ -18,21 +18,21 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.context;
+using nadena.dev.ndmf;
 
 namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public interface IComponentHandler
     {
         bool Match(object t);
-        void Execute(ICatContext context, object entity);
+        void Execute(BuildContext context, object entity);
     }
     
     public abstract class ComponentHandler<T> : IComponentHandler
     {
         bool IComponentHandler.Match(object t) => t is T;
 
-        public abstract void Execute(ICatContext context, T entity);
-        public void Execute(ICatContext context, object entity) => Execute(context, (T)entity);
+        public abstract void Execute(BuildContext context, T entity);
+        public void Execute(BuildContext context, object entity) => Execute(context, (T)entity);
     }
 }

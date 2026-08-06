@@ -18,7 +18,6 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.context.build;
 using io.github.sereinfish.cat.tools.editor.plugin;
 using io.github.sereinfish.cat.tools.editor.utils;
 using nadena.dev.ndmf;
@@ -37,19 +36,19 @@ namespace io.github.sereinfish.cat.tools.editor.pass
             
             // 依次进行处理
             var components = context.AvatarRootTransform.GetComponentsInChildrenTraverseByHierarchy<CatAvatarComponent>(true);
-            var catContext = new CatPluginBuildContext(context);
+            // var catContext = new CatPluginBuildContext(context);
             foreach (var catAvatarComponent in components)
             {
                 if (catAvatarComponent.BuildPhase != CatBuildPhase.Transforming) continue;
                 foreach (var handler in handlers)
                 {
                     if (!handler.Match(catAvatarComponent)) continue;
-                    handler.Execute(catContext, catAvatarComponent);
+                    handler.Execute(context, catAvatarComponent);
                         
                     Debug.Log($"{handler.GetType().Name} handled {catAvatarComponent.GetType().Name} by {catAvatarComponent.transform.name}");
                 }
             }
-            catContext.AfterBuild();
+            // catContext.AfterBuild();
         }
     }
 }

@@ -61,14 +61,14 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run(ComponentOptimizingHandlerPass.Instance);
-            });
-            // 移除所有 CatComponent
-            InPhase(BuildPhase.Optimizing).Run("Remove CatComponent", context =>
-            {
-                foreach (var comp in context.AvatarRootObject.GetComponentsInChildren<CatAvatarComponent>(true))
+                s.Run("Remove CatComponent", context =>
                 {
-                    Object.DestroyImmediate(comp);
-                }
+                    // 移除所有 CatComponent
+                    foreach (var comp in context.AvatarRootObject.GetComponentsInChildren<CatAvatarComponent>(true))
+                    {
+                        Object.DestroyImmediate(comp);
+                    }
+                });
             });
         }
     }

@@ -18,31 +18,22 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.Animator.BlendTree;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
-namespace io.github.sereinfish.cat.tools.editor.context
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    public interface ICatContext
+    public static class AnimationClipExtensions
     {
-        public Transform AvatarRootTransform { get; }
-        public GameObject AvatarRootObject { get; }
+        public static VirtualMotion ToVirtualMotion(this AnimationClip clip, VirtualControllerContext context)
+        {
+            return context.Clone(clip);
+        }
         
-        public ICatAnimatorController GetAnimatorController(VRCAvatarDescriptor.AnimLayerType type);
-        public VRCAvatarDescriptor GetAvatarDescriptor();
-
-        public ICatLayer CreateLayer(string name);
-        public ICatStateTransition CreateTransition();
-
-        public void AssetSave(Object asset, string name = null);
-        
-        /**
-         * 获取到指定层的 单条件 BlendTree
-         * 用于bool状态执行的动画
-         */
-        public ISingleBlendTree GetSingleBlendTree(VRCAvatarDescriptor.AnimLayerType type);
-
-        public void AfterBuild();
+        public static VirtualMotion ToVirtualMotion(this AnimationClip clip, BuildContext context)
+        {
+            return ToVirtualMotion(clip, context.Extension<VirtualControllerContext>());
+        }
     }
 }

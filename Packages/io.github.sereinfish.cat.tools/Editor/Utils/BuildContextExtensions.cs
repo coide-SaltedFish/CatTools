@@ -18,19 +18,19 @@
 //  */
 #endregion
 
-using System;
-using UnityEngine;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.vrchat;
+using VRC.SDK3.Avatars.Components;
 
-namespace io.github.sereinfish.cat.tools.editor.context.Extensions
+namespace io.github.sereinfish.cat.tools.editor.utils
 {
-    public static class CatStateExtensions
+    public static class BuildContextExtensions
     {
-        public static T CreateScriptableObject<T>(this ICatState state, Action<T> action = null) where T : StateMachineBehaviour
+        public static VirtualAnimatorController GetAnimatorController(this BuildContext context, VRCAvatarDescriptor.AnimLayerType type)
         {
-            var scriptableObject = ScriptableObject.CreateInstance<T>();
-            action?.Invoke(scriptableObject);
-            state.Behaviours = state.Behaviours.Add(scriptableObject);
-            return scriptableObject;
+            var controllerContext = context.Extension<VirtualControllerContext>();
+            return controllerContext.Controllers[type];
         }
     }
 }

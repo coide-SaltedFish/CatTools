@@ -23,9 +23,10 @@ using System.Linq;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.Conditions;
 using io.github.sereinfish.cat.tools.editor.Conditions.Build;
-using io.github.sereinfish.cat.tools.editor.context;
-using io.github.sereinfish.cat.tools.editor.context.Extensions;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.vrchat;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -34,7 +35,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class DynamicIntParameterHandler : ComponentHandler<DynamicIntParameter>
     {
-        public override void Execute(ICatContext context, DynamicIntParameter entity)
+        public override void Execute(BuildContext context, DynamicIntParameter entity)
         {
             var controller = context.GetAnimatorController(entity.layerType);
 
@@ -45,7 +46,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
         }
 
-        private static void CreateRWState(ICatContext context, ICatAnimatorController controller, ICatLayer layer,
+        private static void CreateRWState(BuildContext context, VirtualAnimatorController controller, VirtualLayer layer,
             string name, int bitWidth, BitParameter[] bitParameters, bool read = true, bool write = true, bool isLocal = false)
         {
             var valueMax = 1 << bitWidth;
@@ -108,7 +109,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
         }
         
-        private static void CreateInitState(ICatContext context, ICatAnimatorController controller, ICatLayer layer,
+        private static void CreateInitState(BuildContext context, VirtualAnimatorController controller, VirtualLayer layer,
             string name, BitParameter[] bitParameters)
         {
             var initState = layer.AddState("Init", position:new Vector3(0, 200));
@@ -143,7 +144,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         /// <summary>
         /// 初始化控制器参数
         /// </summary>
-        private static void InitControllerParameter(ICatAnimatorController controller, string name, int defaultValue, BitParameter[] bitParameters)
+        private static void InitControllerParameter(VirtualAnimatorController controller, string name, int defaultValue, BitParameter[] bitParameters)
         {
             // 注册 IsLocal
             controller.AddParameterIfNot(VRCSdkAnimatorParameters.IsLocal.Name, false);
@@ -172,10 +173,9 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         /// <summary>
         /// 注册参数
         /// </summary>
-        private static void RegisterParameter(ICatContext context, string name, int defaultValue, bool save, bool networkSynced, BitParameter[] bitParameters)
+        private static void RegisterParameter(BuildContext context, string name, int defaultValue, bool save, bool networkSynced, BitParameter[] bitParameters)
         {
-            
-            context.GetAvatarDescriptor().ExpressionParameters()
+            context.VRChatAvatarDescriptor().ExpressionParameters()
                 .Add(name, VRCExpressionParameters.ValueType.Int, defaultValue, false, false) // 注册 Int
                 .Add($"IsInit/{name}", VRCExpressionParameters.ValueType.Bool, 0, false, false)
                 .ForEach(bitParameters, (builder, bitParameter) =>
@@ -194,12 +194,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         /// <summary>
         /// 创建动态 Int 参数
         /// </summary>
-        public static KeyValuePair<string, List<string>> CreateDynamicInt(ICatContext context, ICatAnimatorController controller,
+        public static KeyValuePair<string, List<string>> CreateDynamicInt(BuildContext context, VirtualAnimatorController controller,
             string parameterName, string[] bitNames, int bitWidth, bool save, bool networkSynced, int defaultValue,
             bool read, bool write, bool isLocal)
         {
-            var layer = ICatLayer.Create(context, $"DynamicInt/{parameterName}_{StringHelper.GetRandomString()}")
-                .AddToController(controller);
+            var layer = controller.AddLayer($"DynamicInt/{parameterName}_{StringHelper.GetRandomString()}");
             // 参数注册
             var bitParameters = GetBitParameter(parameterName, bitWidth, defaultValue, bitNames);
             InitControllerParameter(controller, parameterName, defaultValue, bitParameters);

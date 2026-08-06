@@ -22,15 +22,15 @@ using System;
 using io.github.sereinfish.cat.tools.Components;
 using io.github.sereinfish.cat.tools.editor.animator.builder;
 using io.github.sereinfish.cat.tools.editor.animator.builder.extensions;
-using io.github.sereinfish.cat.tools.editor.context;
 using io.github.sereinfish.cat.tools.editor.utils;
+using nadena.dev.ndmf;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class ConditionalBlendShapeSetterHandler : ComponentHandler<ConditionalBlendShapeSetter>
     {
-        public override void Execute(ICatContext context, ConditionalBlendShapeSetter entity)
+        public override void Execute(BuildContext context, ConditionalBlendShapeSetter entity)
         {
             // if (entity.targets == null || entity.targets.Length == 0)
             // {
@@ -44,8 +44,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             }
             
             var controller = context.GetAnimatorController(entity.layerType);
-            var layer = ICatLayer.Create(context, $"ConditionalBlendShapeSetter_{StringHelper.GetRandomString()}")
-                .AddToController(controller);
+            var layer = controller.AddLayer($"ConditionalBlendShapeSetter_{StringHelper.GetRandomString()}");
             // 当不需要恢复默认值时，empty -> change -> default -> empty
             // 反之default -> chang
             
@@ -70,7 +69,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         }
                     }
                 })
-                .Build();
+                .Build().ToVirtualMotion(context);
             var changeClip = AnimationBuilder.Create()
                 .Run(builder =>
                 {
@@ -87,19 +86,19 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         }
                     }
                 })
-                .Build();
+                .Build().ToVirtualMotion(context);
 
-            var defaultState = layer.StateMachine.AddState("Default", defaultClip);
-            var changeState = layer.StateMachine.AddState("Change", changeClip);
+            var defaultState = layer.GetStateMachine().AddState("Default", defaultClip);
+            var changeState = layer.GetStateMachine().AddState("Change", changeClip);
             if (entity.restoreToggle)
             {
-                layer.StateMachine.DefaultState = defaultState;
+                layer.GetStateMachine().DefaultState = defaultState;
                 entity.conditions.CreateConditionsTransition(context, controller, changeState, defaultState);
             }
             else
             {
-                var emptyState = layer.StateMachine.AddState("Empty");
-                layer.StateMachine.DefaultState = emptyState;
+                var emptyState = layer.GetStateMachine().AddState("Empty");
+                layer.GetStateMachine().DefaultState = emptyState;
                 // empty -> change
                 entity.conditions.CreateConditionsTransitionTo(context, controller, emptyState, changeState);
                 // change -> default
