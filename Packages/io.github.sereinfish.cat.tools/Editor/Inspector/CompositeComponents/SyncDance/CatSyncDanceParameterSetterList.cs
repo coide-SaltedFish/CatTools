@@ -56,8 +56,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             {
                 (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Set
                     or (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Add
-                    or (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Copy => lineH * 4 + spacing * 3,
-                (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Random =>
+                    or (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Random => lineH * 4 + spacing * 3,
+                (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Copy =>
                     lineH * 5 + spacing * 4,
                 _ => throw new ArgumentException("Invalid type")
             };
@@ -83,13 +83,19 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), typeProp, new GUIContent("参数类型"));
             y += lineH + spacing;
             EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), setterType, new GUIContent("参数设置类型"));
-            y += lineH + spacing;
-            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), sourceParameterNameProp, new GUIContent("源参数"));
+            
             if (setterType.enumValueIndex == (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Copy)
+            {
+                y += lineH + spacing;
+                EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), sourceParameterNameProp, new GUIContent("源参数"));
+            }
+
+            if (setterType.enumValueIndex != (int)CatSyncDanceParameterSetterEntry.ParameterSetterType.Copy)
             {
                 y += lineH + spacing;
                 EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), valueProp, new GUIContent("值")); 
             }
+            
         }
          
         public void DoLayoutList()

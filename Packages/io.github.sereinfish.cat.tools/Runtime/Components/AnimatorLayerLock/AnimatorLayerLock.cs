@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
 {
-    [AddComponentMenu("CatTools/集成组件/AnimatorLayerLock")]
+    [AddComponentMenu("CatTools/AnimatorLayerLock")]
     public class AnimatorLayerLock : CatAvatarComponent
     {
         public override CatBuildPhase BuildPhase => CatBuildPhase.Optimizing;
