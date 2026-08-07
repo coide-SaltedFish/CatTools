@@ -77,25 +77,57 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 Debug.LogWarning($"AnimatorLayerLockHandler: {entry.animLayerType}->{layer.Name} 中没有找到目标状态，将不会执行任何操作");
                 return;
             }
-            // 如果是锁定到默认状态，为默认状态发出的过渡添加条件
+            // 如果是锁定到默认状态，为默认状态发出的过渡添加条件，不满足条件才进入下一步
             var newTransitions = new List<VirtualStateTransition>();
             foreach (var transition in lockTargetState.Transitions)
             {
-                newTransitions.AddRange(transition.MergeParameterOrConditions(entity.conditions));
+                newTransitions.AddRange(transition.MergeParameterOrConditions(entity.conditions.Inverse()));
             }
             lockTargetState.Transitions = newTransitions.ToImmutableList();
-            // 为所有的状态添加过渡，不满足条件时过渡到锁定状态
+            // 为所有的状态添加过渡，满足条件时过渡到锁定状态
             foreach (var state in EnumerateStates(layer.GetStateMachine()))
             {
                 if (state == null) continue;
                 
                 if (state == lockTargetState) continue;
-                entity.conditions.CreateConditionsTransitionInverseTo(context, controller, state, lockTargetState);
+                entity.conditions.CreateConditionsTransitionTo(context, controller, state, lockTargetState);
             }
-            // 为锁定状态添加过渡，满足条件时退出
-            entity.conditions.CreateConditionsTransitionToExit(context, controller, lockTargetState);
+            // 为锁定状态添加过渡，不满足条件时退出
+            entity.conditions.Inverse().CreateConditionsTransitionToExit(context, controller, lockTargetState);
+            
+            // 为 AnyStateTransitions 添加过渡
+            SetAnyStateTransitions(context, controller, layer, layer.StateMachine, entity, lockTargetState);
         }
+        
+        private void SetAnyStateTransitions(BuildContext context, VirtualAnimatorController controller, VirtualLayer layer,
+            VirtualStateMachine stateMachine, AnimatorLayerLock entity, VirtualState lockTargetState)
+        {
+            if (stateMachine == null) return;
+            // 当前 StateMachine 直接包含的 AnyTransition
+            if (stateMachine.AnyStateTransitions.IsEmpty.Not())
+            {
+                // 添加过渡当满足条件时进入锁定状态
+                entity.conditions.CreateAnyStateConditionsTransition(context, controller, layer, lockTargetState);
+                var anyStateTransitions = new List<VirtualStateTransition>();
+                foreach (var transition in stateMachine.AnyStateTransitions)
+                {
+                    if (transition.DestinationState == lockTargetState)
+                    {
+                        anyStateTransitions.Add(transition);
+                        continue;
+                    }
+                    // 为过渡添加条件
+                    anyStateTransitions.AddRange(transition.MergeParameterOrConditions(entity.conditions.Inverse()));
+                }   
+                stateMachine.AnyStateTransitions = anyStateTransitions.ToImmutableList();
+            }
 
+            // 递归进入子 StateMachine
+            foreach (var childMachine in stateMachine.StateMachines)
+            {
+                SetAnyStateTransitions(context, controller, layer, childMachine.StateMachine, entity, lockTargetState);
+            }
+        }
         private IEnumerable<VirtualState> EnumerateStates(VirtualStateMachine stateMachine)
         {
             // 当前 StateMachine 直接包含的 State
