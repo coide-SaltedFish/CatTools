@@ -92,8 +92,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 if (state == lockTargetState) continue;
                 entity.conditions.CreateConditionsTransitionTo(context, controller, state, lockTargetState);
             }
-            // 为锁定状态添加过渡，不满足条件时退出
-            entity.conditions.Inverse().CreateConditionsTransitionToExit(context, controller, lockTargetState);
+            // 当为锁定到空状态时，为锁定状态添加过渡，不满足条件时退出
+            if (entry.lockOperation == AnimatorLayerLockOperation.CreateEmptyStateAndLock)
+            {
+                entity.conditions.Inverse().CreateConditionsTransitionToExit(context, controller, lockTargetState);
+            }
             
             // 为 AnyStateTransitions 添加过渡
             SetAnyStateTransitions(context, controller, layer, layer.StateMachine, entity, lockTargetState);
