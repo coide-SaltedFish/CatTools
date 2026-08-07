@@ -262,11 +262,15 @@ namespace io.github.sereinfish.cat.tools.editor.inspector.window
                     }
                 };
             }
-            
-            if (GUILayout.Button($"{currentName}", popupStyle))
+            EditorGUILayout.BeginHorizontal(GUILayout.Height(EditorGUIUtility.singleLineHeight + 2f));
+            GUILayout.Label("材质处理器：",GUILayout.Width(position.width * 0.45f),
+                GUILayout.Height(20));
+            if (GUILayout.Button($"{currentName}", popupStyle, GUILayout.Width(position.width * 0.45f),
+                    GUILayout.Height(20)))
             {
                 ShowMaterialHandlerMenu(autoHandler, sourceMaterial);
             }
+            EditorGUILayout.EndHorizontal();
         }
         
         private void ShowMaterialHandlerMenu(ConditionalMatchMaterialsSetter.AutoHandleMaterial autoHandle, Material sourceMaterial)

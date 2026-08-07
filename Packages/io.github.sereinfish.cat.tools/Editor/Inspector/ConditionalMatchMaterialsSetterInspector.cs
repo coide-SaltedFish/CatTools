@@ -86,10 +86,13 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                         .Name;
                 }
             }
-            if (GUILayout.Button($"{currentName}", EditorStyles.popup))
+            EditorGUILayout.BeginHorizontal(GUILayout.Height(EditorGUIUtility.singleLineHeight + 2f));
+            GUILayout.Label("材质处理器：", GUILayout.Width(80f), GUILayout.Height(20));
+            if (GUILayout.Button($"{currentName}", EditorStyles.popup, GUILayout.Height(20)))
             {
                 ShowMaterialHandlerMenu();
             }
+            EditorGUILayout.EndHorizontal();
         }
         
         private void ShowMaterialHandlerMenu()
