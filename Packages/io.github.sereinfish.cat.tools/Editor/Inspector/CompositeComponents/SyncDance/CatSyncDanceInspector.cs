@@ -113,9 +113,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 EditorGUILayout.PropertyField(_volumeParameterProp, new GUIContent("音量参数", tooltip:"Float类型，用于控制音量的参数，可选"));
                 EditorGUILayout.PropertyField(_speedParameterProp, new GUIContent("速度参数", tooltip:"Float类型，用于控制速度的参数，可选"));
                 EditorGUILayout.PropertyField(_autoRegisterOptionalParametersProp, new GUIContent("自动注册可选参数", tooltip:"是否自动注册可选参数"));
-                EditorGUILayout.PropertyField(_disableLocomotionLayerWhenDancingProp, new GUIContent("跳舞时禁用 locomotion 层", tooltip:"启用后会在NDFM框架构建的优化阶段对 Base 层所有层进行处理，在跳舞时跳转到 Empty State"));
-                EditorGUILayout.PropertyField(_disableFxFaceLayerWhenDancingProp, new GUIContent("跳舞时禁用FX表情层", tooltip:"启用后在跳舞时自动将FX层1、2层权重设置为0"));
-                EditorGUILayout.PropertyField(_faceEmoCompatibleProp, new GUIContent("FaceEmo插件表情兼容", tooltip:"是否兼容FaceEmo插件表情，启用后在跳舞时将FaceEmo状态设置为PASS"));
+                // EditorGUILayout.PropertyField(_disableLocomotionLayerWhenDancingProp, new GUIContent("跳舞时禁用 locomotion 层", tooltip:"启用后会在NDFM框架构建的优化阶段对 Base 层所有层进行处理，在跳舞时跳转到 Empty State"));
+                // EditorGUILayout.PropertyField(_disableFxFaceLayerWhenDancingProp, new GUIContent("跳舞时禁用FX表情层", tooltip:"启用后在跳舞时自动将FX层1、2层权重设置为0"));
+                // EditorGUILayout.PropertyField(_faceEmoCompatibleProp, new GUIContent("FaceEmo插件表情兼容", tooltip:"是否兼容FaceEmo插件表情，启用后在跳舞时将FaceEmo状态设置为PASS"));
                 
                 _parameterSetterFold = EditorGUILayout.Foldout(_parameterSetterFold, "参数设置");
                 if (_parameterSetterFold)
