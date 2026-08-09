@@ -52,7 +52,11 @@ namespace io.github.sereinfish.cat.tools.Components
         /// </summary>
         public interface IMaterialHandler
         {
-            public string HandlerName { get; }
+            public string HandlerName { get; } // 处理接口名称
+            
+            /// <summary>
+            /// 处理材质
+            /// </summary>
             public Material HandleMaterial(Material input);
         }
         
