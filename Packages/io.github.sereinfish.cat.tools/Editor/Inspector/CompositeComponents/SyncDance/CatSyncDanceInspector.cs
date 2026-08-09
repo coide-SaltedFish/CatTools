@@ -28,9 +28,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
     [CustomEditor(typeof(CatSyncDance))]
     public class CatSyncDanceInspector : CatEditor
     {
-        private bool _advancedFold = true; // 高级选项折叠开关
-        private bool _parameterSetterFold = true; // 参数设置折叠开关
-        private bool _stopParameterFold = true; // 停止参数折叠开关
+        private bool _advancedFold = false; // 高级选项折叠开关
+        private bool _parameterSetterFold = false; // 参数设置折叠开关
+        private bool _stopParameterFold = false; // 停止参数折叠开关
         
         private SerializedProperty _controllerParameterNameProp;
         private SerializedProperty _autoCreateControllerParameterProp;
