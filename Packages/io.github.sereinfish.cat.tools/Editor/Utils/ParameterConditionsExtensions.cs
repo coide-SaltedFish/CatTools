@@ -32,7 +32,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
     public static class ParameterConditionsExtensions
     {
         public static void CreateConditionsTransition(this ParameterOrConditions conditions, BuildContext context,
-            VirtualAnimatorController controller, VirtualState onState, VirtualState offState)
+            VirtualAnimatorController controller, VirtualState onState, VirtualState offState, float? exitTime = null, float duration = 0f)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -59,8 +59,8 @@ namespace io.github.sereinfish.cat.tools.editor.utils
             {
                 var tOnState = context.CreateVirtualStateTransition();
                 tOnState.SetDestination(onState);
-                tOnState.ExitTime = null;
-                tOnState.Duration = 0;
+                tOnState.ExitTime = exitTime;
+                tOnState.Duration = duration;
                 
                 foreach (var condition in entry.conditions)
                 {
@@ -123,9 +123,10 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         /// <param name="state"></param>
         /// <param name="target"></param>
         /// <param name="exitTime"></param>
+        /// <param name="duration"></param>
         public static void CreateConditionsTransitionTo(this ParameterOrConditions conditions,
             BuildContext context, VirtualAnimatorController controller, VirtualState state, VirtualState target,
-            float? exitTime = null)
+            float? exitTime = null, float duration = 0f)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -151,7 +152,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 var transition = context.CreateVirtualStateTransition();
                 transition.SetDestination(target);
                 transition.ExitTime = exitTime;
-                transition.Duration = 0;
+                transition.Duration = duration;
                 
                 foreach (var condition in entry.conditions)
                 {
@@ -165,7 +166,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 state.Transitions = state.Transitions.Add(transition);
             }
         }
-        
+
         /// <summary>
         /// 创建一个不满足条件时的过渡 
         /// </summary>
@@ -175,8 +176,9 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         /// <param name="onState"></param>
         /// <param name="offState"></param>
         /// <param name="exitTime"></param>
+        /// <param name="duration"></param>
         public static void CreateConditionsTransitionInverseTo(this ParameterOrConditions conditions,
-            BuildContext context, VirtualAnimatorController controller, VirtualState onState, VirtualState offState, float? exitTime = null)
+            BuildContext context, VirtualAnimatorController controller, VirtualState onState, VirtualState offState, float? exitTime = null, float duration = 0f)
         {
             conditions = conditions.Inverse();
             
@@ -204,7 +206,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 var tOffState = context.CreateVirtualStateTransition();
                 tOffState.SetDestination(offState);
                 tOffState.ExitTime = exitTime;
-                tOffState.Duration = 0;
+                tOffState.Duration = duration;
                 
                 foreach (var condition in entries.conditions)
                 {
@@ -221,7 +223,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         }
 
         public static void CreateAnyStateConditionsTransition(this ParameterOrConditions conditions,
-            BuildContext context, VirtualAnimatorController controller, VirtualLayer layer, VirtualState state, float? exitTime = null)
+            BuildContext context, VirtualAnimatorController controller, VirtualLayer layer, VirtualState state, float? exitTime = null, float duration = 0f)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -247,7 +249,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 var transition = context.CreateVirtualStateTransition();
                 transition.SetDestination(state);
                 transition.ExitTime = exitTime;
-                transition.Duration = 0;
+                transition.Duration = duration;
                 
                 foreach (var condition in entry.conditions)
                 {
@@ -265,7 +267,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
         
         public static void CreateConditionsTransitionToExit(this ParameterOrConditions conditions,
             BuildContext context, VirtualAnimatorController controller, VirtualState state,
-            float? exitTime = null)
+            float? exitTime = null, float duration = 0f)
         {
             // 检查参数
             foreach (var conditionsEntry in conditions)
@@ -291,7 +293,7 @@ namespace io.github.sereinfish.cat.tools.editor.utils
                 var transition = context.CreateVirtualStateTransition();
                 transition.SetExitDestination();
                 transition.ExitTime = exitTime;
-                transition.Duration = 0;
+                transition.Duration = duration;
                 
                 foreach (var condition in entry.conditions)
                 {

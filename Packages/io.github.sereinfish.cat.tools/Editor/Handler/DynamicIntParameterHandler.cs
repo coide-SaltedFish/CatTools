@@ -59,7 +59,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 if (read)
                 {
                     var stateR = layer.AddState($"R_{i}", position: new Vector3(300, stateY + i * stateHeight));
-                    if (i == 0) layer.StateMachine.DefaultState = stateR;
+                    if (i == 0) layer.GetStateMachine().DefaultState = stateR;
                     stateR.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
                     {
                         driver.AddParameterDriverSet(name, currentValue);
