@@ -34,6 +34,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedObject _target;
         private SerializedProperty _dances;
         private Vector2 _scrollPos;
+        /// <summary>滚动视口区域，用于剔除视口外的条目绘制</summary>
+        private Rect _scrollViewport;
         private ReorderableList _list;
         /// <summary>各标签文案复用对象，避免每行每帧重复分配 GUIContent</summary>
         private static readonly GUIContent LoopLabel = new("循环");
@@ -90,6 +92,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             _list.DoLayoutList();
             EditorGUILayout.EndScrollView();
+            // EditorGUILayout.BeginScrollView 返回的是滚动位置而非视口矩形，视口区域在结束时记录，供下一次绘制剔除使用
+            _scrollViewport = GUILayoutUtility.GetLastRect();
+            if (_scrollViewport.height > position.height) _scrollViewport.height = position.height;
             _target.ApplyModifiedProperties();
         }
         
@@ -107,6 +112,14 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         
         private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
+            // 视口剔除：完全落在滚动可视区域之外的条目跳过绘制，条目数量大时避免每帧绘制全部行
+            if (_scrollViewport.height > 0f)
+            {
+                var visibleTop = _scrollPos.y;
+                var visibleBottom = visibleTop + _scrollViewport.height;
+                if (rect.y + rect.height <= visibleTop || rect.y >= visibleBottom) return;
+            }
+
             var lineH = EditorGUIUtility.singleLineHeight + 2f;
             var spacing = EditorGUIUtility.standardVerticalSpacing;
 
