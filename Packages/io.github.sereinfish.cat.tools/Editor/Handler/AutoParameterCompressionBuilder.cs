@@ -50,14 +50,15 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             DynamicIntParameterHandler.CreateDynamicInt(context, fxController, syncSignalParameterName, null,
                 syncSignalBitWidth, false, true, 0, true, true, false);
 
-            // 3. 按最大类型注册数据交换参数（ExpressionParameters + FX 控制器）
+            // 3. 按最大类型注册数据交换参数（ExpressionParameters）
             context.VRChatAvatarDescriptor().ExpressionParameters()
                 .Add(dataExchangeParameterName, dataExchangeType, 0, false, true)
                 .Build();
+            //  FX 控制器
             fxController.AddParameterIfNot(new AnimatorControllerParameter
             {
                 name = dataExchangeParameterName,
-                type = ToAnimatorType(dataExchangeType),
+                type = AnimatorControllerParameterType.Float,
                 defaultFloat = 0f,
                 defaultBool = false,
                 defaultInt = 0
