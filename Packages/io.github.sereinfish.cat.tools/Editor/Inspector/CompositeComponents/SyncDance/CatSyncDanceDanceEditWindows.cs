@@ -35,7 +35,21 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _dances;
         private Vector2 _scrollPos;
         private ReorderableList _list;
+        /// <summary>各标签文案复用对象，避免每行每帧重复分配 GUIContent</summary>
+        private static readonly GUIContent LoopLabel = new("循环");
+        private static readonly GUIContent SpeedLabel = new("速度:");
+        private static readonly GUIContent MusicClipLabel = new("音乐剪辑");
+        private static readonly GUIContent SyncParameterLabel = new("同步参数");
+        private static readonly GUIContent ValueLabel = new("值:");
+        private static readonly GUIContent AnimClipLabel = new("动画剪辑");
+        private static readonly GUIContent DanceNameLabel = new("舞蹈名称");
+        private static readonly GUIContent PathTypeLabel = new("动画路径类型");
+
         private readonly Dictionary<string, ItemList> _danceLists = new();
+        /// <summary>
+        /// 同步参数名缓存，每帧仅计算一次，供各舞蹈条目的下拉框复用
+        /// </summary>
+        private string[] _syncParameterNames = Array.Empty<string>();
         private SerializedProperty _syncParameterProp;
         private SerializedProperty _controllerParameterNameProp;
         
@@ -61,7 +75,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 onRemoveCallback = list =>
                 {
                     var index = list.index;
-                    _danceLists.Remove(GetSyncDanceUuid(_dances.GetArrayElementAtIndex(index)));
+                    _danceLists.Remove(GetSyncDanceKey(index, _dances.GetArrayElementAtIndex(index)));
                     // 调用默认删除逻辑
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 }
@@ -71,6 +85,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private void OnGUI()
         {
             _target.Update();
+            // 同步参数下拉选项每帧只计算一次，避免每个舞蹈的每行参数重复构建
+            _syncParameterNames = GetSyncParameterNames();
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             _list.DoLayoutList();
             EditorGUILayout.EndScrollView();
@@ -85,7 +101,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             var itemList = GetOrCreateItemList(index, prop);
 
             // 与 DrawElement 保持一致：标题、舞蹈名称、动画路径类型、音乐/循环/速度 共 4 行，加 2 个内嵌列表
-            return lineH * 4 + spacing * 5 + itemList.AnimClipList.GetHeight() + itemList.MusicClipList.GetHeight();
+            // 内嵌列表高度按元素数缓存，避免外层高度计算时反复遍历内嵌元素
+            return lineH * 4 + spacing * 5 + itemList.AnimClipHeight + itemList.MusicClipHeight;
         }
         
         private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
@@ -116,7 +133,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             y += lineH + spacing;
             
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), danceName, new GUIContent("舞蹈名称"));
+            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), danceName, DanceNameLabel);
             if (EditorGUI.EndChangeCheck())
             {
                 if (DanceNameCheck(index, danceName.stringValue).Not())
@@ -125,31 +142,31 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 }
             }
             y += lineH + spacing;
-            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), pathType, new GUIContent("动画路径类型"));
+            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), pathType, PathTypeLabel);
             y += lineH + spacing;
             itemList.AnimClipList.DoList(new Rect(x, y, rect.width, lineH));
-            y += itemList.AnimClipList.GetHeight() + spacing;
+            y += itemList.AnimClipHeight + spacing;
             // 音乐剪辑、循环和速度同一行：音乐剪辑在前占剩余宽度，循环和速度保持紧凑布局
-            var loopLabelWidth = EditorStyles.label.CalcSize(new GUIContent("循环")).x;
-            var speedLabelWidth = EditorStyles.label.CalcSize(new GUIContent("速度:")).x;
+            var loopLabelWidth = EditorStyles.label.CalcSize(LoopLabel).x;
+            var speedLabelWidth = EditorStyles.label.CalcSize(SpeedLabel).x;
             var toggleWidth = EditorGUIUtility.singleLineHeight;
             const float speedInputWidth = 40f;
-            var musicClipLabelWidth = EditorStyles.label.CalcSize(new GUIContent("音乐剪辑")).x;
+            var musicClipLabelWidth = EditorStyles.label.CalcSize(MusicClipLabel).x;
             // 循环和速度区域的总宽度
             var loopSpeedWidth = loopLabelWidth + 2f + toggleWidth + 5f + speedLabelWidth + 2f + speedInputWidth;
             var musicClipFieldWidth = Mathf.Max(0f, rect.width - musicClipLabelWidth - 2f - loopSpeedWidth);
             var fieldX = x;
-            EditorGUI.LabelField(new Rect(fieldX, y, musicClipLabelWidth, lineH), "音乐剪辑");
+            EditorGUI.LabelField(new Rect(fieldX, y, musicClipLabelWidth, lineH), MusicClipLabel);
             fieldX += musicClipLabelWidth + 2f;
             EditorGUI.ObjectField(new Rect(fieldX, y, musicClipFieldWidth, lineH), musicClip, typeof(AudioClip));
             fieldX += musicClipFieldWidth;
-            EditorGUI.LabelField(new Rect(fieldX, y, loopLabelWidth, lineH), "循环");
+            EditorGUI.LabelField(new Rect(fieldX, y, loopLabelWidth, lineH), LoopLabel);
             fieldX += loopLabelWidth + 2f;
             EditorGUI.BeginChangeCheck();
             var loopValue = EditorGUI.Toggle(new Rect(fieldX, y, toggleWidth, lineH), loop.boolValue);
             if (EditorGUI.EndChangeCheck()) loop.boolValue = loopValue;
             fieldX += toggleWidth + 5f;
-            EditorGUI.LabelField(new Rect(fieldX, y, speedLabelWidth, lineH), "速度:");
+            EditorGUI.LabelField(new Rect(fieldX, y, speedLabelWidth, lineH), SpeedLabel);
             fieldX += speedLabelWidth + 2f;
             EditorGUI.PropertyField(new Rect(fieldX, y, speedInputWidth, lineH), speed, GUIContent.none);
             y += lineH + spacing;
@@ -158,18 +175,23 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 
         private string[] GetSyncParameterNames()
         {
-            var names = new List<string>();
-            for (var i = 0; i < _syncParameterProp.arraySize; i++)
+            var count = _syncParameterProp.arraySize;
+            var names = new string[count];
+            for (var i = 0; i < count; i++)
             {
-                names.Add(_syncParameterProp.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue);
+                names[i] = _syncParameterProp.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue;
             }
 
-            return names.ToArray();
+            return names;
         }
 
-        private string GetSyncDanceUuid(SerializedProperty dance)
+        /// <summary>
+        /// 以舞蹈名称作为缓存键（名称已保证唯一），避免每帧计算 MD5 造成的开销
+        /// </summary>
+        private string GetSyncDanceKey(int index, SerializedProperty dance)
         {
-            return dance.FindPropertyRelative("danceName").stringValue.GetMD5();
+            var name = dance.FindPropertyRelative("danceName").stringValue;
+            return string.IsNullOrEmpty(name) ? $"__empty_{index}" : name;
         }
         
         private bool DanceNameCheck(int index, string dName)
@@ -237,15 +259,16 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         /// </summary>
         private ItemList GetOrCreateItemList(int index, SerializedProperty prop)
         {
-            var uuid = GetSyncDanceUuid(prop);
-            if (_danceLists.TryGetValue(uuid, out var itemList))
+            var key = GetSyncDanceKey(index, prop);
+            if (_danceLists.TryGetValue(key, out var itemList))
             {
                 // 缓存绑定的下标已与当前下标不一致，说明数组结构发生了变化，需要重建
                 if (itemList.BoundIndex == index) return itemList;
-                _danceLists.Remove(uuid);
+                _danceLists.Remove(key);
             }
-            itemList = new ItemList(_dances, index, GetSyncParameterNames);
-            _danceLists[uuid] = itemList;
+            // 直接引用每帧缓存的同步参数数组，下拉选项无需重新构建
+            itemList = new ItemList(_dances, index, () => _syncParameterNames);
+            _danceLists[key] = itemList;
             return itemList;
         }
         
@@ -257,6 +280,25 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             /// 该列表项绑定的舞蹈元素下标，用于在数组变化时检测缓存是否失效
             /// </summary>
             public readonly int BoundIndex;
+
+            /// <summary>缓存的内嵌列表高度，仅在元素数变化时重新计算，避免布局阶段反复遍历内嵌元素</summary>
+            public float AnimClipHeight => GetHeight(ref _animClipCount, ref _animClipHeight, AnimClipList);
+            public float MusicClipHeight => GetHeight(ref _musicClipCount, ref _musicClipHeight, MusicClipList);
+
+            private int _animClipCount = -1;
+            private float _animClipHeight;
+            private int _musicClipCount = -1;
+            private float _musicClipHeight;
+
+            private static float GetHeight(ref int cachedCount, ref float cachedHeight, ReorderableList list)
+            {
+                if (cachedCount != list.count)
+                {
+                    cachedHeight = list.GetHeight();
+                    cachedCount = list.count;
+                }
+                return cachedHeight;
+            }
             
             public ItemList(SerializedProperty dances,int index, Func<string[]> getSyncParameterNames)
             {
@@ -270,7 +312,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 
                 MusicClipList = new ReorderableList(danceParameters.serializedObject, danceParameters, true, true, true, true)
                 {
-                    drawHeaderCallback = r => EditorGUI.LabelField(r, "同步参数"),
+                    drawHeaderCallback = r => EditorGUI.LabelField(r, SyncParameterLabel),
                     elementHeightCallback = _ => lineH,
                     drawElementCallback = (r, i, a, f) =>
                     {
@@ -288,12 +330,12 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                             nowIndex = 0;
                         }
                         // 一行布局：固定宽度标签 + 5 + 30%宽度下拉框 + 5 + 固定宽度值标签 + 2 + 剩余宽度输入框
-                        var labelWidth = EditorStyles.label.CalcSize(new GUIContent("同步参数")).x;
-                        var valueLabelWidth = EditorStyles.label.CalcSize(new GUIContent("值:")).x;
+                        var labelWidth = EditorStyles.label.CalcSize(SyncParameterLabel).x;
+                        var valueLabelWidth = EditorStyles.label.CalcSize(ValueLabel).x;
                         var popupWidth = r.width * 0.3f;
                         var valueWidth = r.width - labelWidth - 5f - popupWidth - 5f - valueLabelWidth - 2f;
                         var x = r.x;
-                        EditorGUI.LabelField(new Rect(x, r.y, labelWidth, lineH), "同步参数");
+                        EditorGUI.LabelField(new Rect(x, r.y, labelWidth, lineH), SyncParameterLabel);
                         x += labelWidth + 5f;
                         var newIndex = EditorGUI.Popup(new Rect(x, r.y, popupWidth, lineH), nowIndex, options);
                         if (newIndex != nowIndex)
@@ -301,14 +343,14 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                             parameterName.stringValue = options[newIndex];
                         }
                         x += popupWidth + 5f;
-                        EditorGUI.LabelField(new Rect(x, r.y, valueLabelWidth, lineH), "值:");
+                        EditorGUI.LabelField(new Rect(x, r.y, valueLabelWidth, lineH), ValueLabel);
                         x += valueLabelWidth + 2f;
                         EditorGUI.PropertyField(new Rect(x, r.y, valueWidth, lineH), pValue, GUIContent.none);
                     }
                 };
                 AnimClipList = new ReorderableList(clips.serializedObject, clips, true, true, true, true)
                 {
-                    drawHeaderCallback = r => EditorGUI.LabelField(r, "动画剪辑"),
+                    drawHeaderCallback = r => EditorGUI.LabelField(r, AnimClipLabel),
                     elementHeightCallback = _ => lineH,
                     drawElementCallback = (r, i, a, f) =>
                     {
