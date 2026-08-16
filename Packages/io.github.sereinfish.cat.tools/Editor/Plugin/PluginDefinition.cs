@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -41,21 +41,31 @@ namespace io.github.sereinfish.cat.tools.editor.plugin
         
         protected override void Configure()
         {
-            var seq = InPhase(BuildPhase.Resolving); 
-            // 克隆全部动画控制器
+            // Resolving：克隆动画控制器与表达式参数，并执行 Resolving 阶段的组件处理
+            var seq = InPhase(BuildPhase.Resolving);
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run("Clone animators", _ => { });
                 s.Run(CloneExpressionParametersPass.Instance);
+                s.Run(ComponentResolvingHandlerPass.Instance);
             });
-            // 执行
-            seq = InPhase(BuildPhase.Transforming); 
+
+            // Generating：执行 Generating 阶段的组件处理
+            seq = InPhase(BuildPhase.Generating);
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
+            {
+                s.Run(ComponentGeneratingHandlerPass.Instance);
+            });
+
+            // Transforming：组件处理（MA 之前）
+            seq = InPhase(BuildPhase.Transforming);
             seq.BeforePlugin("nadena.dev.modular-avatar");
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
                 s.Run(ComponentTransformingHandlerPass.Instance);
             });
-            // 优化阶段组件运行（MA之后）
+
+            // Optimizing：优化阶段组件处理（MA 之后），最后移除 CatComponent
             seq = InPhase(BuildPhase.Optimizing);
             seq.AfterPlugin("nadena.dev.modular-avatar");
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>

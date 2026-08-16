@@ -26,36 +26,31 @@ namespace io.github.sereinfish.cat.tools.Components
 {
     /// <summary>
     /// 自动类型参数压缩组件
-    /// 自动将列表中的参数进行类型压缩（如将多个布尔参数按位打包为 Int 参数），
-    /// 并在 Optimizing 阶段按照同步间隔执行异步同步。
+    /// 将列表中的参数按类型（Float/Int/Bool）自动分组，通过数据交换通道进行异步同步。
+    /// 固定同步间隔 0.1s，每层最多 10 个参数（单层最大 1s 延迟）；
+    /// Float 与 Int 不混合，Bool 可填充 Float/Int 层的空位。
     /// </summary>
     [AddComponentMenu("CatTools/AutoParameterCompression")]
     public class AutoParameterCompression : CatAvatarComponent
     {
         public override CatBuildPhase BuildPhase => CatBuildPhase.Optimizing;
-        
-        /// <summary>
-        /// 同步间隔（秒）
-        /// </summary>
-        [Tooltip("同步间隔（秒），每隔该时间执行一次参数的异步同步，最小 0.05 秒")]
-        public float syncInterval = 0.1f;
-        
+
         /// <summary>
         /// 需要异步同步的参数名称列表
         /// </summary>
-        [Tooltip("需要异步同步的参数名称列表")]
-        public List<string> asyncSyncParameterNames = new List<string>();
+        [Tooltip("需要异步同步的参数名称列表，按 Float/Int/Bool 自动分组处理")]
+        public List<string> asyncSyncParameterNames = new();
 
         /// <summary>
-        /// 同步信号变量名称
+        /// 同步信号变量名称（前缀，每个压缩层会自动追加 /{index} 后缀）
         /// </summary>
-        [Tooltip("用于同步信号的变量名称，默认为空")]
+        [Tooltip("同步信号变量名称前缀，默认为空则自动生成；每个压缩层会追加 /{index} 后缀")]
         public string syncSignalParameterName;
 
         /// <summary>
-        /// 数据交换变量名称
+        /// 数据交换变量名称（前缀，每个压缩层会自动追加 /{index} 后缀）
         /// </summary>
-        [Tooltip("用于数据交换的变量名称，默认为空")]
+        [Tooltip("数据交换变量名称前缀，默认为空则自动生成；每个压缩层会追加 /{index} 后缀")]
         public string dataExchangeParameterName;
     }
 }

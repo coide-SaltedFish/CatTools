@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -19,36 +19,11 @@
 #endregion
 
 using io.github.sereinfish.cat.tools.editor.plugin;
-using io.github.sereinfish.cat.tools.editor.utils;
-using nadena.dev.ndmf;
-using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.editor.pass
 {
-    public class ComponentOptimizingHandlerPass : Pass<ComponentOptimizingHandlerPass>
+    public class ComponentOptimizingHandlerPass : ComponentHandlerPass<ComponentOptimizingHandlerPass>
     {
-        protected override void Execute(BuildContext context)
-        {
-            // 获取所有的处理器
-            var handlers = PackageUtils.GetBuildHandlers();
-
-            if (handlers.Length < 1) Debug.LogWarning("脚本没有找到任何处理器对组件进行处理，检查脚本完整性");
-            
-            // 依次进行处理
-            var components = context.AvatarRootTransform.GetComponentsInChildrenTraverseByHierarchy<CatAvatarComponent>(true);
-            // var catContext = new CatPluginBuildContext(context);
-            foreach (var catAvatarComponent in components)
-            {
-                if (catAvatarComponent.BuildPhase != CatBuildPhase.Optimizing) continue;
-                foreach (var handler in handlers)
-                {
-                    if (!handler.Match(catAvatarComponent)) continue;
-                    handler.Execute(context, catAvatarComponent);
-                        
-                    Debug.Log($"{handler.GetType().Name} handled {catAvatarComponent.GetType().Name} by {catAvatarComponent.transform.name}");
-                }
-            }
-            // catContext.AfterBuild();
-        }
+        protected override CatBuildPhase Phase => CatBuildPhase.Optimizing;
     }
 }

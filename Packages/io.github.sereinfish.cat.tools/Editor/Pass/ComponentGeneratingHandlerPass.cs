@@ -22,8 +22,8 @@ using io.github.sereinfish.cat.tools.editor.plugin;
 
 namespace io.github.sereinfish.cat.tools.editor.pass
 {
-    public class ComponentTransformingHandlerPass : ComponentHandlerPass<ComponentTransformingHandlerPass>
+    public class ComponentGeneratingHandlerPass : ComponentHandlerPass<ComponentGeneratingHandlerPass>
     {
-        protected override CatBuildPhase Phase => CatBuildPhase.Transforming;
+        protected override CatBuildPhase Phase => CatBuildPhase.Generating;
     }
 }

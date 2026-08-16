@@ -51,23 +51,26 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 Debug.LogWarning($"AutoParameterCompression {entity.name}: FX 动画控制器不存在，将不会执行任何操作");
                 return;
             }
-            
-            // 4. 参数名称为空时生成默认名称
-            var syncSignalName = string.IsNullOrEmpty(entity.syncSignalParameterName)
-                ? $"AutoParameterCompression/syncSignalParameter/{StringHelper.GetRandomString()}"
+
+            // 名称前缀：每个压缩层会追加 /{index} 后缀，保证多层之间互不覆盖
+            var random = StringHelper.GetRandomString();
+            var syncSignalBaseName = string.IsNullOrEmpty(entity.syncSignalParameterName)
+                ? $"AutoParameterCompression/syncSignalParameter/{random}"
                 : entity.syncSignalParameterName;
-            var dataExchangeName = string.IsNullOrEmpty(entity.dataExchangeParameterName)
-                ? $"AutoParameterCompression/dataExchangeParameter/{StringHelper.GetRandomString()}"
+            var dataExchangeBaseName = string.IsNullOrEmpty(entity.dataExchangeParameterName)
+                ? $"AutoParameterCompression/dataExchangeParameter/{random}"
                 : entity.dataExchangeParameterName;
 
-            // 1. 从 ExpressionParameters 中提取参数类型，跳过不存在的参数
+            // 从 ExpressionParameters 中提取参数类型，去重并按 Float/Int/Bool 分类，跳过不存在的参数
             var expressionBuilder = context.VRChatAvatarDescriptor().ExpressionParameters();
-            var parameterNames = new List<string>();
-            var parameterTypes = new List<VRCExpressionParameters.ValueType>();
-            var maxType = VRCExpressionParameters.ValueType.Bool;
+            var floatNames = new List<string>();
+            var intNames = new List<string>();
+            var boolNames = new List<string>();
+            var seen = new HashSet<string>();
             foreach (var parameterName in entity.asyncSyncParameterNames)
             {
                 if (string.IsNullOrEmpty(parameterName)) continue;
+                if (!seen.Add(parameterName)) continue;
 
                 var contains = false;
                 expressionBuilder.Contains(parameterName, ref contains);
@@ -79,28 +82,28 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
                 VRCExpressionParameters.ValueType? type = null;
                 expressionBuilder.Find(parameterName, p => type = p.valueType);
-                parameterNames.Add(parameterName);
-                parameterTypes.Add(type!.Value);
-                // bool 最小，int 其次，float 最大
-                if (type.Value > maxType) maxType = type.Value;
+                switch (type!.Value)
+                {
+                    case VRCExpressionParameters.ValueType.Float:
+                        floatNames.Add(parameterName);
+                        break;
+                    case VRCExpressionParameters.ValueType.Int:
+                        intNames.Add(parameterName);
+                        break;
+                    default:
+                        boolNames.Add(parameterName);
+                        break;
+                }
             }
-            if (parameterNames.Count == 0)
+
+            if (floatNames.Count + intNames.Count + boolNames.Count == 0)
             {
                 Debug.LogWarning($"AutoParameterCompression {entity.name}: 没有找到任何有效参数，将不会执行任何操作");
                 return;
             }
 
-            // 2. 同步信号位宽：2^bitWidth > 参数数量 且最接近（参考 CatSyncDance.GetControllerParameterWidth）
-            var bitWidth = 1;
-            while ((1 << bitWidth) <= parameterNames.Count) bitWidth++;
-            if (bitWidth > 8)
-            {
-                Debug.LogWarning($"AutoParameterCompression {entity.name}: 参数数量 {parameterNames.Count} 超出 8 位可表示范围，将不会执行任何操作");
-                return;
-            }
-
-            AutoParameterCompressionBuilder.Build(context, fxController, parameterNames, parameterTypes,
-                syncSignalName, bitWidth, dataExchangeName, entity.syncInterval, maxType);
+            var groups = AutoParameterCompressionBuilder.GroupParameters(floatNames, intNames, boolNames);
+            AutoParameterCompressionBuilder.Build(context, fxController, groups, syncSignalBaseName, dataExchangeBaseName);
         }
     }
 }

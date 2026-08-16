@@ -18,17 +18,20 @@
 //  */
 #endregion
 
+using System.Collections.Generic;
 using io.github.sereinfish.cat.tools.Components;
+using io.github.sereinfish.cat.tools.editor.handler;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace io.github.sereinfish.cat.tools.editor.inspector
 {
     [CustomEditor(typeof(AutoParameterCompression))]
     public class AutoParameterCompressionInspector : CatEditor
     {
-        private SerializedProperty _syncIntervalProp;
         private SerializedProperty _asyncSyncParameterNamesProp;
         private SerializedProperty _syncSignalParameterNameProp;
         private SerializedProperty _dataExchangeParameterNameProp;
@@ -40,11 +43,10 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 
         protected override void Init()
         {
-            _syncIntervalProp = PropGet(nameof(AutoParameterCompression.syncInterval));
             _asyncSyncParameterNamesProp = PropGet(nameof(AutoParameterCompression.asyncSyncParameterNames));
             _syncSignalParameterNameProp = PropGet(nameof(AutoParameterCompression.syncSignalParameterName));
             _dataExchangeParameterNameProp = PropGet(nameof(AutoParameterCompression.dataExchangeParameterName));
-            
+
             _parameterNamesList = new ReorderableList(serializedObject, _asyncSyncParameterNamesProp, true, true, true, true)
             {
                 drawHeaderCallback = rect => EditorGUI.LabelField(rect, "异步同步参数名称"),
@@ -56,54 +58,112 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 
         protected override void OnDraw()
         {
-            EditorGUILayout.HelpBox("自动类型参数压缩：自动判断参数类型，并按同步间隔进行异步同步。", MessageType.Info);
-            DrawSyncInterval();
+            EditorGUILayout.HelpBox(
+                "自动类型参数压缩：按参数类型（Float/Int/Bool）自动分组，同步间隔 0.1s，每层最多 10 个参数（单层最大 1s 延迟）",
+                MessageType.Info);
             _parameterNamesList.DoLayoutList();
-            DrawTotalSyncDuration();
+            DrawGroupingPreview();
 
             _showOther = EditorGUILayout.Foldout(_showOther, "其他", true);
             if (_showOther)
             {
-                EditorGUILayout.PropertyField(_syncSignalParameterNameProp, new GUIContent("同步信号变量名称"));
-                EditorGUILayout.PropertyField(_dataExchangeParameterNameProp, new GUIContent("数据交换变量名称"));
+                EditorGUILayout.PropertyField(_syncSignalParameterNameProp, new GUIContent("同步信号变量名称前缀"));
+                EditorGUILayout.PropertyField(_dataExchangeParameterNameProp, new GUIContent("数据交换变量名称前缀"));
+                EditorGUILayout.LabelField("每个压缩层会为上述前缀自动追加 /{index} 后缀。", GetWarningStyle(ref _yellowWarningStyle, Color.gray));
             }
         }
 
         /// <summary>
-        /// 绘制同步间隔字段，并带时长校验提示
+        /// 读取当前 Avatar 的 ExpressionParameters，按 Float/Int/Bool 分类配置的参数并预览分组结果。
         /// </summary>
-        private void DrawSyncInterval()
+        private void DrawGroupingPreview()
         {
-            EditorGUILayout.PropertyField(_syncIntervalProp, new GUIContent("同步间隔（秒）"));
+            var floatNames = new List<string>();
+            var intNames = new List<string>();
+            var boolNames = new List<string>();
+            var missingNames = new List<string>();
+            var seen = new HashSet<string>();
 
-            const float minInterval = 0.05f;
-            // 小于最小值的输入进行纠正
-            if (_syncIntervalProp.floatValue < minInterval)
+            var typeByName = GetParameterTypeMap();
+            for (var i = 0; i < _asyncSyncParameterNamesProp.arraySize; i++)
             {
-                _syncIntervalProp.floatValue = minInterval;
+                var name = _asyncSyncParameterNamesProp.GetArrayElementAtIndex(i).stringValue;
+                if (string.IsNullOrEmpty(name)) continue;
+                if (!seen.Add(name)) continue;
+
+                if (typeByName == null || !typeByName.TryGetValue(name, out var type))
+                {
+                    missingNames.Add(name);
+                    continue;
+                }
+
+                switch (type)
+                {
+                    case VRCExpressionParameters.ValueType.Float:
+                        floatNames.Add(name);
+                        break;
+                    case VRCExpressionParameters.ValueType.Int:
+                        intNames.Add(name);
+                        break;
+                    default:
+                        boolNames.Add(name);
+                        break;
+                }
             }
 
-            var interval = _syncIntervalProp.floatValue;
-            if (interval > 1f)
+            if (typeByName == null)
             {
-                EditorGUILayout.LabelField("同步间隔大于1s可能会导致参数更新过慢", GetWarningStyle(ref _yellowWarningStyle, Color.yellow));
+                EditorGUILayout.LabelField("未找到 ExpressionParameters，无法预览参数分组。", GetWarningStyle(ref _yellowWarningStyle, Color.yellow));
+                return;
             }
-            else if (interval < 0.1f)
+
+            var groups = AutoParameterCompressionBuilder.GroupParameters(floatNames, intNames, boolNames);
+            var builtCount = 0;
+            var abandonedCount = 0;
+            var abandonedNames = new List<string>();
+            var maxDelay = 0f;
+            foreach (var group in groups)
             {
-                EditorGUILayout.LabelField("同步小于0.1s可能会导致参数同步不稳定", GetWarningStyle(ref _redWarningStyle, Color.red));
+                if (group.ShouldAbandon)
+                {
+                    abandonedCount++;
+                    abandonedNames.AddRange(group.ParameterNames);
+                    continue;
+                }
+                builtCount++;
+                maxDelay = Mathf.Max(maxDelay, group.Count * AutoParameterCompressionBuilder.SyncIntervalSeconds);
+            }
+
+            EditorGUILayout.LabelField(
+                $"Float {floatNames.Count} 个 / Int {intNames.Count} 个 / Bool {boolNames.Count} 个 → 共 {groups.Count} 层（构建 {builtCount} 层、放弃 {abandonedCount} 层）" +
+                $"\n单层最大同步延迟 {maxDelay:F1}s（每层最多 {AutoParameterCompressionBuilder.MaxParametersPerLayer} 个参数）");
+
+            if (abandonedCount > 0)
+            {
+                EditorGUILayout.LabelField($"以下参数因所在层过小（≤3 个参数）将被放弃、保持默认同步：{string.Join(", ", abandonedNames)}",
+                    GetWarningStyle(ref _yellowWarningStyle, Color.yellow));
+            }
+
+            if (missingNames.Count > 0)
+            {
+                EditorGUILayout.LabelField($"以下 {missingNames.Count} 个参数未在 ExpressionParameters 中找到：{string.Join(", ", missingNames)}",
+                    GetWarningStyle(ref _redWarningStyle, Color.red));
             }
         }
 
-        /// <summary>
-        /// 计算并提示总同步时长（同步间隔 × 异步同步参数数量）
-        /// </summary>
-        private void DrawTotalSyncDuration()
+        private Dictionary<string, VRCExpressionParameters.ValueType> GetParameterTypeMap()
         {
-            var totalSyncDuration = _syncIntervalProp.floatValue * _asyncSyncParameterNamesProp.arraySize;
-            if (totalSyncDuration > 1f)
+            var avatarRoot = GetAvatarRoot<AutoParameterCompression>();
+            var descriptor = avatarRoot?.GetComponent<VRCAvatarDescriptor>();
+            var expressionParameters = descriptor?.expressionParameters;
+            if (expressionParameters == null || expressionParameters.parameters == null) return null;
+
+            var map = new Dictionary<string, VRCExpressionParameters.ValueType>();
+            foreach (var parameter in expressionParameters.parameters)
             {
-                EditorGUILayout.LabelField($"总当前总同步时长为{totalSyncDuration}，参数同步延迟较大", GetWarningStyle(ref _yellowWarningStyle, Color.yellow));
+                if (!string.IsNullOrEmpty(parameter.name)) map[parameter.name] = parameter.valueType;
             }
+            return map;
         }
 
         /// <summary>

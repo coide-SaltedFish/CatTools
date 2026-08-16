@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -29,19 +29,29 @@ namespace io.github.sereinfish.cat.tools.editor.utils
     {
         public static IComponentHandler[] GetBuildHandlers()
         {
-            var handlerType = typeof(IComponentHandler);
+            return CreateInstances<IComponentHandler>();
+        }
+
+        public static IComponentProcessor[] GetBuildProcessors()
+        {
+            return CreateInstances<IComponentProcessor>();
+        }
+
+        private static T[] CreateInstances<T>()
+        {
+            var handlerType = typeof(T);
             return AppDomain.CurrentDomain
                 .GetAssemblies()
                 .SelectMany(a => {
                     try { return a.GetTypes(); }
                     catch (ReflectionTypeLoadException e) { return e.Types.Where(x => x != null); }
                 })
-                .Where(t => 
+                .Where(t =>
                     handlerType.IsAssignableFrom(t) &&
                     !t.IsInterface && !t.IsAbstract &&
                     t.GetConstructor(new Type[] {}) != null
                 )
-                .Select(t => (IComponentHandler)Activator.CreateInstance(t)!)
+                .Select(t => (T)Activator.CreateInstance(t)!)
                 .ToArray();
         }
     }
