@@ -51,6 +51,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         private Transform _contactsTransform; // 同步组件对象
         private Transform _songsTransform; // 音乐对象
         private Transform _speedControllerTransform; // 速度控制器对象
+        private int[] _danceLocalIndices; // 无冲突分配后的各舞蹈本地控制参数值
         // 发送器和接收器对象
         private readonly Dictionary<string, List<Transform>> _senderContactTransforms = new();
         private readonly Dictionary<string, List<Transform>> _receiverContactTransforms = new();
@@ -58,6 +59,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         public override void Execute(BuildContext context, CatSyncDance entity)
         {
             ValidateAndFixDanceAssets(entity); // 校验并自动修复音频后台加载与动画循环选项
+            _danceLocalIndices = entity.ResolveDanceLocalIndices(); // 统一无冲突分配本地控制参数值
             RegisterParameters(context, entity); // 注册参数
             DynamicParameterBuild(context, entity); // 构建动态参数
 
@@ -70,12 +72,11 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         }
 
         /// <summary>
-        /// 获取舞蹈的本地控制参数值：localIndex 为 0 时表示 null（自动），使用下标 + 1。
+        /// 获取舞蹈的本地控制参数值（无冲突分配，结果由 <see cref="CatSyncDance.ResolveDanceLocalIndices"/> 提供）。
         /// </summary>
-        private static int GetDanceLocalIndex(CatSyncDanceEntry entry, int index)
+        private int GetDanceLocalIndex(int index)
         {
-            var localIndex = entry?.localIndex ?? 0;
-            return localIndex != 0 ? localIndex : index + 1;
+            return index >= 0 && index < _danceLocalIndices.Length ? _danceLocalIndices[index] : 0;
         }
 
         /// <summary>
@@ -439,7 +440,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
-                        builder.Or().Equal(entity.controllerParameterName, GetDanceLocalIndex(entity.dances[i], i));
+                        builder.Or().Equal(entity.controllerParameterName, GetDanceLocalIndex(i));
                     }
                 }).Build();
             toInitConditions.CreateConditionsTransitionTo(context, controller, waitState, initState);
@@ -457,7 +458,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             {
                 var danceStateX = 600;
                 var syncDanceEntry = entity.dances[i];
-                var localIndex = GetDanceLocalIndex(syncDanceEntry, i);
+                var localIndex = GetDanceLocalIndex(i);
                 // 开始条件
                 var toDanceConditions = ConditionsBuilder.Create()
                     .Equal(entity.controllerParameterName, localIndex).Or()
@@ -591,7 +592,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             for (var i = 0; i < entity.dances.Length; i++)
             {
                 var danceInfo = entity.dances[i];
-                var localIndex = GetDanceLocalIndex(danceInfo, i);
+                var localIndex = GetDanceLocalIndex(i);
                 var clip = AnimationBuilder.Create()
                     .Run(builder =>
                     {
@@ -688,7 +689,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 var musicClips = new AudioClip[Mathf.Max(1, entity.GetMaxDanceLocalIndex() + 1)];
                 for (var i = 0; i < entity.dances.Length; i++)
                 {
-                    var li = GetDanceLocalIndex(entity.dances[i], i);
+                    var li = GetDanceLocalIndex(i);
                     if (li > 0 && li < musicClips.Length) musicClips[li] = entity.dances[i].musicClip;
                 }
                 animationPlayAudio.Clips = musicClips;
@@ -709,7 +710,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 {
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
-                        var li = GetDanceLocalIndex(entity.dances[i], i);
+                        var li = GetDanceLocalIndex(i);
                         build.Or()
                             .Equal(entity.controllerParameterName, li)
                             .NotEqual(nowPlayParameterName, li);

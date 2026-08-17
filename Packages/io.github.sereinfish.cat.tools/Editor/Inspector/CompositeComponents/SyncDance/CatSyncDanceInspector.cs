@@ -47,6 +47,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _stopDanceParametersProp;
         private SerializedProperty _dancesProp;
         private SerializedProperty _danceCategoriesProp;
+        private SerializedProperty _autoBuildMenuProp;
+        private SerializedProperty _expressionsMenuProp;
         
         private CatSyncDanceParameterSetterList _startParameterSetterList;
         private CatSyncDanceParameterSetterList _endParameterSetterList;
@@ -71,6 +73,8 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _stopDanceParametersProp = PropGet(nameof(CatSyncDance.stopDanceParameters));
             _dancesProp = PropGet(nameof(CatSyncDance.dances));
             _danceCategoriesProp = PropGet(nameof(CatSyncDance.danceCategories));
+            _autoBuildMenuProp = PropGet(nameof(CatSyncDance.autoBuildMenu));
+            _expressionsMenuProp = PropGet(nameof(CatSyncDance.expressionsMenu));
             
             _startParameterSetterList = new CatSyncDanceParameterSetterList("开始时参数设置", _danceStartParameterSettersProp);
             _endParameterSetterList = new CatSyncDanceParameterSetterList("结束时参数设置", _danceEndParameterSettersProp);
@@ -115,6 +119,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 EditorGUILayout.PropertyField(_volumeParameterProp, new GUIContent("音量参数", tooltip:"Float类型，用于控制音量的参数，可选"));
                 EditorGUILayout.PropertyField(_speedParameterProp, new GUIContent("速度参数", tooltip:"Float类型，用于控制速度的参数，可选"));
                 EditorGUILayout.PropertyField(_autoRegisterOptionalParametersProp, new GUIContent("自动注册可选参数", tooltip:"是否自动注册可选参数"));
+                EditorGUILayout.PropertyField(_autoBuildMenuProp, new GUIContent("自动构建菜单", tooltip:"构建时自动生成 CatSyncDance 的 ExpressionsMenu，并安装到 MA Menu Installer 或 VRC Avatar Descriptor"));
+                if (_autoBuildMenuProp.boolValue)
+                {
+                    EditorGUILayout.PropertyField(_expressionsMenuProp, new GUIContent("ExpressionsMenu", tooltip:"可选。选择要替换的 ExpressionsMenu；留空则仅安装生成的菜单"));
+                }
                 // EditorGUILayout.PropertyField(_disableLocomotionLayerWhenDancingProp, new GUIContent("跳舞时禁用 locomotion 层", tooltip:"启用后会在NDFM框架构建的优化阶段对 Base 层所有层进行处理，在跳舞时跳转到 Empty State"));
                 // EditorGUILayout.PropertyField(_disableFxFaceLayerWhenDancingProp, new GUIContent("跳舞时禁用FX表情层", tooltip:"启用后在跳舞时自动将FX层1、2层权重设置为0"));
                 // EditorGUILayout.PropertyField(_faceEmoCompatibleProp, new GUIContent("FaceEmo插件表情兼容", tooltip:"是否兼容FaceEmo插件表情，启用后在跳舞时将FaceEmo状态设置为PASS"));

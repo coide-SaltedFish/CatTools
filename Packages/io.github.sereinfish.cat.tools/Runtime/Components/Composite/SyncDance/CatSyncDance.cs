@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace io.github.sereinfish.cat.tools.Components
 {
@@ -76,6 +77,12 @@ namespace io.github.sereinfish.cat.tools.Components
 
         // 舞蹈类别，在组件面板中配置，之后在舞蹈编辑窗口中分配给各舞蹈
         public string[] danceCategories;
+
+        // 是否自动构建菜单
+        public bool autoBuildMenu = false;
+
+        // 指定的 ExpressionsMenu（可选），用于替换引用 / 与 MA Menu Installer 的“要安装的菜单”对比
+        public VRCExpressionsMenu expressionsMenu;
 
         public int GetBitWidth(string parameterName)
         {
@@ -145,14 +152,49 @@ namespace io.github.sereinfish.cat.tools.Components
         }
         
         /// <summary>
-        /// 获取指定下标的舞蹈的本地控制参数值。
-        /// localIndex 为 0 时表示 null（自动），此时使用下标 + 1 自动递增。
+        /// 解析所有舞蹈的本地控制参数值（无冲突分配）。
+        /// localIndex &gt; 0 表示手动指定，原样保留并占用；localIndex == 0 表示自动，
+        /// 按 dances 数组顺序从 1 开始取未被占用的最小整数（手动值与已分配的自增值都算占用）。
+        /// </summary>
+        public int[] ResolveDanceLocalIndices()
+        {
+            var count = dances?.Length ?? 0;
+            var result = new int[count];
+            if (count == 0) return result;
+
+            var used = new HashSet<int>();
+
+            // 第一遍：手动指定的值原样保留并占用
+            for (var i = 0; i < count; i++)
+            {
+                var manual = dances[i]?.localIndex ?? 0;
+                if (manual <= 0) continue;
+                result[i] = manual;
+                used.Add(manual);
+            }
+
+            // 第二遍：自动值从小到大分配，跳过已占用值
+            var next = 1;
+            for (var i = 0; i < count; i++)
+            {
+                if (result[i] > 0) continue; // 手动值已定
+                while (used.Contains(next)) next++;
+                result[i] = next;
+                used.Add(next);
+                next++;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 获取指定下标的舞蹈的本地控制参数值（无冲突分配）。
+        /// localIndex 为 0 时表示自动。
         /// </summary>
         public int GetDanceLocalIndex(int index)
         {
             if (dances == null || index < 0 || index >= dances.Length) return 0;
-            var localIndex = dances[index]?.localIndex ?? 0;
-            return localIndex != 0 ? localIndex : index + 1;
+            return ResolveDanceLocalIndices()[index];
         }
 
         /// <summary>
@@ -160,11 +202,10 @@ namespace io.github.sereinfish.cat.tools.Components
         /// </summary>
         public int GetMaxDanceLocalIndex()
         {
-            if (dances == null || dances.Length == 0) return 0;
+            var resolved = ResolveDanceLocalIndices();
             var max = 0;
-            for (var i = 0; i < dances.Length; i++)
+            foreach (var value in resolved)
             {
-                var value = GetDanceLocalIndex(i);
                 if (value > max) max = value;
             }
             return max;
