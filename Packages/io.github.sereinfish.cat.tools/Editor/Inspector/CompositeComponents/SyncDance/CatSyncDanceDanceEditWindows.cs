@@ -467,9 +467,12 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             // 6. 类别
             DrawCategories(new Rect(x, y, rect.width, lineH), categoriesProp);
 
-            // 分割线（上下各 4px 间隔，2px 粗）
+            // 分割线（上下各 4px 间隔，2px 粗），使用主题高对比标准色，保证明显可见
             var dividerRect = new Rect(x, rect.yMax - DividerGap - DividerThickness, rect.width, DividerThickness);
-            EditorGUI.DrawRect(dividerRect, new Color(0f, 0f, 0f, 0.22f));
+            var dividerColor = EditorGUIUtility.isProSkin
+                ? new Color(1f, 1f, 1f, 0.7f)   // 深色主题：明显白色
+                : new Color(0f, 0f, 0f, 0.5f);  // 浅色主题：明显黑色
+            EditorGUI.DrawRect(dividerRect, dividerColor);
         }
 
         private void DrawLocalIndex(Rect rect, int arrayIndex, SerializedProperty localIndexProp)
