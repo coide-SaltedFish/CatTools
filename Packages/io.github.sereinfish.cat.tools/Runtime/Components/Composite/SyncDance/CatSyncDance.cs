@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -26,6 +26,7 @@ using UnityEngine;
 namespace io.github.sereinfish.cat.tools.Components
 {
     [AddComponentMenu("CatTools/集成组件/CatSyncDance")]
+    [DisallowMultipleComponent]
     public class CatSyncDance : CatAvatarComponent
     {
         // 控制参数名称，用于控制跳舞 Int
@@ -72,6 +73,9 @@ namespace io.github.sereinfish.cat.tools.Components
         
         // 舞蹈数据
         public CatSyncDanceEntry[] dances;
+
+        // 舞蹈类别，在组件面板中配置，之后在舞蹈编辑窗口中分配给各舞蹈
+        public string[] danceCategories;
 
         public int GetBitWidth(string parameterName)
         {
@@ -140,9 +144,35 @@ namespace io.github.sereinfish.cat.tools.Components
             return bitsNames.ToArray();
         }
         
+        /// <summary>
+        /// 获取指定下标的舞蹈的本地控制参数值。
+        /// localIndex 为 0 时表示 null（自动），此时使用下标 + 1 自动递增。
+        /// </summary>
+        public int GetDanceLocalIndex(int index)
+        {
+            if (dances == null || index < 0 || index >= dances.Length) return 0;
+            var localIndex = dances[index]?.localIndex ?? 0;
+            return localIndex != 0 ? localIndex : index + 1;
+        }
+
+        /// <summary>
+        /// 获取所有舞蹈中最大的本地控制参数值。
+        /// </summary>
+        public int GetMaxDanceLocalIndex()
+        {
+            if (dances == null || dances.Length == 0) return 0;
+            var max = 0;
+            for (var i = 0; i < dances.Length; i++)
+            {
+                var value = GetDanceLocalIndex(i);
+                if (value > max) max = value;
+            }
+            return max;
+        }
+
         public int GetControllerParameterWidth()
         {
-            var maxValue = dances.Length;
+            var maxValue = GetMaxDanceLocalIndex();
             var bitWidth = 1;
             while ((1 << bitWidth) <= maxValue)
             {

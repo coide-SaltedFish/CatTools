@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -46,6 +46,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SerializedProperty _danceEndParameterSettersProp;
         private SerializedProperty _stopDanceParametersProp;
         private SerializedProperty _dancesProp;
+        private SerializedProperty _danceCategoriesProp;
         
         private CatSyncDanceParameterSetterList _startParameterSetterList;
         private CatSyncDanceParameterSetterList _endParameterSetterList;
@@ -69,6 +70,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             _danceEndParameterSettersProp = PropGet(nameof(CatSyncDance.danceEndParameterSetters));
             _stopDanceParametersProp = PropGet(nameof(CatSyncDance.stopDanceParameters));
             _dancesProp = PropGet(nameof(CatSyncDance.dances));
+            _danceCategoriesProp = PropGet(nameof(CatSyncDance.danceCategories));
             
             _startParameterSetterList = new CatSyncDanceParameterSetterList("开始时参数设置", _danceStartParameterSettersProp);
             _endParameterSetterList = new CatSyncDanceParameterSetterList("结束时参数设置", _danceEndParameterSettersProp);
@@ -141,9 +143,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                     EditorGUILayout.EndVertical();
                 }
 
+                EditorGUILayout.PropertyField(_danceCategoriesProp, new GUIContent("舞蹈类别", "在舞蹈编辑窗口中用于给各舞蹈分配类别"), true);
+
                 if (GUILayout.Button("舞蹈列表"))
                 {
-                    CatSyncDanceDanceEditWindows.ShowWindow(serializedObject);
+                    CatSyncDanceDanceEditWindows.ShowWindow(((CatSyncDance)target).gameObject);
                 }
             }
         

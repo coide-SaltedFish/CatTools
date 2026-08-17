@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -57,6 +57,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         
         public override void Execute(BuildContext context, CatSyncDance entity)
         {
+            ValidateAndFixDanceAssets(entity); // 校验并自动修复音频后台加载与动画循环选项
             RegisterParameters(context, entity); // 注册参数
             DynamicParameterBuild(context, entity); // 构建动态参数
 
@@ -66,6 +67,62 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             
             ActionLayerBuild(context, entity); // 构建 Action 控制器
             FxLayerBuild(context, entity); // 构建 Fx 控制器
+        }
+
+        /// <summary>
+        /// 获取舞蹈的本地控制参数值：localIndex 为 0 时表示 null（自动），使用下标 + 1。
+        /// </summary>
+        private static int GetDanceLocalIndex(CatSyncDanceEntry entry, int index)
+        {
+            var localIndex = entry?.localIndex ?? 0;
+            return localIndex != 0 ? localIndex : index + 1;
+        }
+
+        /// <summary>
+        /// 校验并自动修复舞蹈引用的资源导入选项：
+        /// 1. AudioClip 未开启「Load In Background」时输出 Warn 并自动开启；
+        /// 2. 指定为循环的动画剪辑（最后一个剪辑，含单剪辑）未开启 Loop Time 时输出 Warn 并自动开启。
+        /// </summary>
+        private static void ValidateAndFixDanceAssets(CatSyncDance entity)
+        {
+            if (entity.dances == null) return;
+            var changed = false;
+
+            foreach (var dance in entity.dances)
+            {
+                if (dance == null) continue;
+
+                // AudioClip 后台加载
+                if (dance.musicClip != null && !dance.musicClip.loadInBackground)
+                {
+                    Debug.LogWarning($"[CatSyncDance] 舞蹈 \"{dance.danceName}\" 的音频 {dance.musicClip.name} 未开启「Load In Background」，已自动开启。");
+                    var audioPath = AssetDatabase.GetAssetPath(dance.musicClip);
+                    var importer = AssetImporter.GetAtPath(audioPath) as AudioImporter;
+                    if (importer != null)
+                    {
+                        importer.loadInBackground = true;
+                        importer.SaveAndReimport();
+                        changed = true;
+                    }
+                }
+
+                // 循环剪辑的 loop 属性
+                if (dance.loop && dance.clip != null && dance.clip.Length > 0)
+                {
+                    var loopClip = dance.clip[dance.clip.Length - 1];
+                    if (loopClip != null && !loopClip.isLooping)
+                    {
+                        Debug.LogWarning($"[CatSyncDance] 舞蹈 \"{dance.danceName}\" 的循环动画 {loopClip.name} 未开启 Loop Time，已自动开启。");
+                        var settings = AnimationUtility.GetAnimationClipSettings(loopClip);
+                        settings.loopTime = true;
+                        AnimationUtility.SetAnimationClipSettings(loopClip, settings);
+                        EditorUtility.SetDirty(loopClip);
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed) AssetDatabase.SaveAssets();
         }
 
         /// <summary>
@@ -382,7 +439,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
-                        builder.Or().Equal(entity.controllerParameterName, i + 1);
+                        builder.Or().Equal(entity.controllerParameterName, GetDanceLocalIndex(entity.dances[i], i));
                     }
                 }).Build();
             toInitConditions.CreateConditionsTransitionTo(context, controller, waitState, initState);
@@ -400,9 +457,10 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             {
                 var danceStateX = 600;
                 var syncDanceEntry = entity.dances[i];
+                var localIndex = GetDanceLocalIndex(syncDanceEntry, i);
                 // 开始条件
                 var toDanceConditions = ConditionsBuilder.Create()
-                    .Equal(entity.controllerParameterName, i + 1).Or()
+                    .Equal(entity.controllerParameterName, localIndex).Or()
                     .ForEach(syncDanceEntry.danceParameters, (builder, parameter) =>
                     {
                         builder.Equal(parameter.parameterName, parameter.value)
@@ -421,10 +479,10 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         builder.Equal(parameter.parameterName, parameter.value);
                     }, (builder, _) => builder.Or())
                     .Or()
-                    .NotEqual(entity.controllerParameterName, i + 1)
+                    .NotEqual(entity.controllerParameterName, localIndex)
                     .Greater(entity.controllerParameterName, 0f)
                     .Or()
-                    .NotEqual(entity.controllerParameterName, i + 1)
+                    .NotEqual(entity.controllerParameterName, localIndex)
                     .ForEach(syncDanceEntry.danceParameters, (builder, parameter) =>
                     {
                         builder.NotEqual(parameter.parameterName, parameter.value);
@@ -450,14 +508,6 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                     if (i1 < syncDanceEntry.clip.Length - 1 && animationClip != null && animationClip.isLooping)
                     {
                         Debug.LogError($"Dance clip {animationClip.name} is looping, please check and set the loop option in the animation.");
-                    }
-                    
-                    if (syncDanceEntry.loop && animationClip != null && i1 == syncDanceEntry.clip.Length - 1 /*&& syncDanceEntry.loopClip == null*/)
-                    {
-                        // 报错，设置为 loop 但是没有设置动画的 loop 选项
-                        throw new ArgumentException(
-                            $"Loop is enabled but animation loop option is not configured: {animationClip.name}"
-                        );
                     }
                 }
 
@@ -541,6 +591,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             for (var i = 0; i < entity.dances.Length; i++)
             {
                 var danceInfo = entity.dances[i];
+                var localIndex = GetDanceLocalIndex(danceInfo, i);
                 var clip = AnimationBuilder.Create()
                     .Run(builder =>
                     {
@@ -563,8 +614,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                         }
                     }).Build().ToVirtualMotion(context);
                 ConditionsBuilder.Create()
-                    .Equal(entity.controllerParameterName, i + 1)
-                    .Build().CreateAnyStateConditionsTransition(context, controller, layer, layer.AddState($"dance {i + 1}", clip));
+                    .Equal(entity.controllerParameterName, localIndex)
+                    .Build().CreateAnyStateConditionsTransition(context, controller, layer, layer.AddState($"dance {localIndex}", clip));
             }
         }
 
@@ -633,10 +684,14 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 animationPlayAudio.PlayOnEnter = true;
                 animationPlayAudio.PlayOnExit = false;
                 animationPlayAudio.DelayInSeconds = 0f;
-                // 歌曲剪辑
-                var musicClips = new List<AudioClip> { null };
-                musicClips.AddRange(entity.dances.Select(syncDanceEntry => syncDanceEntry.musicClip));
-                animationPlayAudio.Clips = musicClips.ToArray();
+                // 歌曲剪辑（按 localIndex 索引，0 为停止）
+                var musicClips = new AudioClip[Mathf.Max(1, entity.GetMaxDanceLocalIndex() + 1)];
+                for (var i = 0; i < entity.dances.Length; i++)
+                {
+                    var li = GetDanceLocalIndex(entity.dances[i], i);
+                    if (li > 0 && li < musicClips.Length) musicClips[li] = entity.dances[i].musicClip;
+                }
+                animationPlayAudio.Clips = musicClips;
             });
             onState.CreateScriptableObject<VRCAvatarParameterDriver>(driver =>
             {
@@ -654,9 +709,10 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 {
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
+                        var li = GetDanceLocalIndex(entity.dances[i], i);
                         build.Or()
-                            .Equal(entity.controllerParameterName, i + 1)
-                            .NotEqual(nowPlayParameterName, i + 1);
+                            .Equal(entity.controllerParameterName, li)
+                            .NotEqual(nowPlayParameterName, li);
                     }
                 }).Build()
                 .CreateConditionsTransitionTo(context, controller, onState, offState);

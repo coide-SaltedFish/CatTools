@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -35,6 +35,8 @@ namespace io.github.sereinfish.cat.tools.Components
         public AudioClip musicClip; // 舞蹈音频
         public bool loop = true; // 是否循环播放
         public float speed = 3f; // 舞蹈播放乘数，默认为 3
+        public int localIndex; // 本地控制参数，0 表示 null（自动递增）
+        public string[] categories; // 舞蹈类别，默认 null
         public DanceParameter[] danceParameters; // 舞蹈播放的条件
         
         public enum PathType
