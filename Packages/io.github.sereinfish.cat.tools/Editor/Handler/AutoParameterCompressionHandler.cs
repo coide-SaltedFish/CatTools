@@ -32,10 +32,17 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     /// <summary>
     /// 自动类型参数压缩处理器
-    /// 由 PackageUtils.GetBuildHandlers() 反射自动发现，在 Optimizing 阶段执行。
+    /// 由 PackageUtils.GetBuildHandlers() 反射自动发现，在 Transforming 阶段执行。
     /// </summary>
     public class AutoParameterCompressionHandler : ComponentHandler<AutoParameterCompression>
     {
+        public override BuildPhase Phase => BuildPhase.Transforming;
+
+        /// <summary>
+        /// 低优先级：数值越大越靠后，确保在其他 Transforming 阶段的 Handler 处理完参数后再压缩。
+        /// </summary>
+        public override int Priority => 100;
+
         public override void Execute(BuildContext context, AutoParameterCompression entity)
         {
             // 入口校验

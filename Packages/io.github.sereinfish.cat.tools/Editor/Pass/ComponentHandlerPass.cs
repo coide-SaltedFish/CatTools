@@ -20,7 +20,6 @@
 
 using System.Linq;
 using io.github.sereinfish.cat.tools.editor.handler;
-using io.github.sereinfish.cat.tools.editor.plugin;
 using io.github.sereinfish.cat.tools.editor.utils;
 using nadena.dev.ndmf;
 using UnityEngine;
@@ -28,7 +27,7 @@ using UnityEngine;
 namespace io.github.sereinfish.cat.tools.editor.pass
 {
     /// <summary>
-    /// 组件处理 Pass 基类。按 <see cref="Phase"/> 指定的构建阶段收集组件，
+    /// 组件处理 Pass 基类。按 <see cref="Phase"/> 指定的构建阶段筛选处理器，
     /// 并分别执行两套相互独立的处理逻辑：
     /// <list type="bullet">
     /// <item><see cref="IComponentHandler"/>：逐组件处理；</item>
@@ -40,21 +39,30 @@ namespace io.github.sereinfish.cat.tools.editor.pass
         /// <summary>
         /// 当前 Pass 处理的构建阶段
         /// </summary>
-        protected abstract CatBuildPhase Phase { get; }
+        protected abstract BuildPhase Phase { get; }
 
         protected sealed override void Execute(BuildContext context)
         {
-            var handlers = PackageUtils.GetBuildHandlers();
-            var processors = PackageUtils.GetBuildProcessors();
+            var allHandlers = PackageUtils.GetBuildHandlers();
+            var allProcessors = PackageUtils.GetBuildProcessors();
 
-            if (handlers.Length < 1 && processors.Length < 1)
+            if (allHandlers.Length < 1 && allProcessors.Length < 1)
             {
                 Debug.LogWarning("脚本没有找到任何处理器对组件进行处理，检查脚本完整性");
             }
 
+            // 只保留当前阶段注册的处理器，并按优先级排序（数值越小越先执行）
+            var handlers = allHandlers
+                .Where(h => h.Phase == Phase)
+                .OrderBy(h => h.Priority)
+                .ToArray();
+            var processors = allProcessors
+                .Where(p => p.Phase == Phase)
+                .OrderBy(p => p.Priority)
+                .ToArray();
+
             var components = context.AvatarRootTransform
                 .GetComponentsInChildrenTraverseByHierarchy<CatAvatarComponent>(true)
-                .Where(c => c.BuildPhase == Phase)
                 .ToArray();
 
             // IComponentHandler：逐组件处理

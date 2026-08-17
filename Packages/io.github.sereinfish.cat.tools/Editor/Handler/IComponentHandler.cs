@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -24,12 +24,25 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public interface IComponentHandler
     {
+        /// <summary>
+        /// 该 Handler 执行的构建阶段
+        /// </summary>
+        BuildPhase Phase { get; }
+
+        /// <summary>
+        /// 运行优先级，数值越小越先执行
+        /// </summary>
+        int Priority { get; }
+
         bool Match(object t);
         void Execute(BuildContext context, object entity);
     }
     
     public abstract class ComponentHandler<T> : IComponentHandler
     {
+        public virtual BuildPhase Phase => BuildPhase.Transforming;
+        public virtual int Priority => 0;
+
         bool IComponentHandler.Match(object t) => t is T;
 
         public abstract void Execute(BuildContext context, T entity);

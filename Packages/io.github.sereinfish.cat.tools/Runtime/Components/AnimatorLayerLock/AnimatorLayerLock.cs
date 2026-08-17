@@ -19,7 +19,6 @@
 #endregion
 
 using io.github.sereinfish.cat.tools.Conditions;
-using io.github.sereinfish.cat.tools.editor.plugin;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
@@ -27,8 +26,6 @@ namespace io.github.sereinfish.cat.tools.Components
     [AddComponentMenu("CatTools/AnimatorLayerLock")]
     public class AnimatorLayerLock : CatAvatarComponent
     {
-        public override CatBuildPhase BuildPhase => CatBuildPhase.Optimizing;
-        
         /// <summary>
         /// 锁定触发条件
         /// </summary>

@@ -19,7 +19,6 @@
 #endregion
 
 using System.Collections.Generic;
-using io.github.sereinfish.cat.tools.editor.plugin;
 using UnityEngine;
 
 namespace io.github.sereinfish.cat.tools.Components
@@ -33,8 +32,6 @@ namespace io.github.sereinfish.cat.tools.Components
     [AddComponentMenu("CatTools/AutoParameterCompression")]
     public class AutoParameterCompression : CatAvatarComponent
     {
-        public override CatBuildPhase BuildPhase => CatBuildPhase.Transforming;
-
         /// <summary>
         /// 需要异步同步的参数名称列表
         /// </summary>

@@ -18,12 +18,12 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.plugin;
+using nadena.dev.ndmf;
 
 namespace io.github.sereinfish.cat.tools.editor.pass
 {
     public class ComponentResolvingHandlerPass : ComponentHandlerPass<ComponentResolvingHandlerPass>
     {
-        protected override CatBuildPhase Phase => CatBuildPhase.Resolving;
+        protected override BuildPhase Phase => BuildPhase.Resolving;
     }
 }

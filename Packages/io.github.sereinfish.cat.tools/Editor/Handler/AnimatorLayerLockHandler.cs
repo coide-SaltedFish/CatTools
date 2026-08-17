@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -35,6 +35,8 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 {
     public class AnimatorLayerLockHandler : ComponentHandler<AnimatorLayerLock>
     {
+        public override BuildPhase Phase => BuildPhase.Optimizing;
+
         public override void Execute(BuildContext context, AnimatorLayerLock entity)
         {
             if (ExecuteCheck(entity).Not()) return;

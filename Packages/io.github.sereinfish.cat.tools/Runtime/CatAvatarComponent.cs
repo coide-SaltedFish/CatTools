@@ -1,4 +1,4 @@
-﻿#region LICENSE
+#region LICENSE
 // /*
 //  * CatTools - A simple Unity plugin to assist in creating VRChat Avatars
 //  * Copyright (C) 2025  一只大猫条
@@ -18,7 +18,6 @@
 //  */
 #endregion
 
-using io.github.sereinfish.cat.tools.editor.plugin;
 using nadena.dev.ndmf;
 using UnityEngine;
 
@@ -27,6 +26,5 @@ namespace io.github.sereinfish.cat.tools
 	[DefaultExecutionOrder(-9999)]
     public class CatAvatarComponent : MonoBehaviour, INDMFEditorOnly
     {
-	    public virtual CatBuildPhase BuildPhase { get; } = CatBuildPhase.Transforming;
     }
 }

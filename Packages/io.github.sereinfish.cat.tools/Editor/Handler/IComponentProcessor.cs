@@ -29,6 +29,16 @@ namespace io.github.sereinfish.cat.tools.editor.handler
     /// </summary>
     public interface IComponentProcessor
     {
+        /// <summary>
+        /// 该 Processor 执行的构建阶段
+        /// </summary>
+        BuildPhase Phase { get; }
+
+        /// <summary>
+        /// 运行优先级，数值越小越先执行
+        /// </summary>
+        int Priority { get; }
+
         bool Match(object t);
         void Execute(BuildContext context, object[] entities);
     }
@@ -39,6 +49,9 @@ namespace io.github.sereinfish.cat.tools.editor.handler
     /// </summary>
     public abstract class ComponentProcessor<T> : IComponentProcessor
     {
+        public virtual BuildPhase Phase => BuildPhase.Transforming;
+        public virtual int Priority => 0;
+
         bool IComponentProcessor.Match(object t) => t is T;
 
         public abstract void Execute(BuildContext context, T[] entities);
