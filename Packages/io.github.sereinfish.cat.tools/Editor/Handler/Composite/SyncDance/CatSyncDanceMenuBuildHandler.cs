@@ -56,6 +56,21 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 return;
             }
 
+            var hasEnabledDance = false;
+            foreach (var dance in entity.dances)
+            {
+                if (dance != null && dance.enabled)
+                {
+                    hasEnabledDance = true;
+                    break;
+                }
+            }
+            if (!hasEnabledDance)
+            {
+                Debug.LogWarning("[CatSyncDance] 未配置任何启用的舞蹈，跳过自动菜单构建。");
+                return;
+            }
+
             var builtMenu = BuildMenu(entity);
 
             // 4. 同 GameObject 的 MA Menu Installer（反射访问，未安装 MA 时回退自带安装）
@@ -135,7 +150,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             for (var i = 0; i < entity.dances.Length; i++)
             {
                 var dance = entity.dances[i];
-                if (dance == null) continue;
+                if (dance == null || !dance.enabled) continue;
 
                 var categories = GetEffectiveCategories(dance);
                 if (categories.Count == 0)

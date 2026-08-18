@@ -50,6 +50,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private SortMode _sortMode = SortMode.None;
         private bool _sortDescending;
         private LoopFilter _loopFilter = LoopFilter.All;
+        private EnabledFilter _enabledFilter = EnabledFilter.All;
         private int _categoryFilterIndex = -1; // -1 表示全部
 
         private string[] _syncParameterNames = Array.Empty<string>();
@@ -66,9 +67,11 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
         private static readonly GUIContent PathTypeLabel = new("动画路径类型");
         private static readonly GUIContent LocalIndexLabel = new("控制参数分配");
         private static readonly GUIContent CategoryLabel = new("类别");
+        private static readonly GUIContent EnabledLabel = new("启用");
 
         private static readonly string[] SortModeNames = { "不排序", "按舞蹈名", "按总大小", "按歌曲大小", "按动作大小" };
         private static readonly string[] LoopFilterNames = { "全部", "循环", "不循环" };
+        private static readonly string[] EnabledFilterNames = { "全部", "启用", "未启用" };
 
         // 分割线样式：2px 粗，上下各 4px 间隔
         private const float DividerThickness = 2f;
@@ -89,6 +92,13 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             All = 0,
             Loop = 1,
             NoLoop = 2
+        }
+
+        private enum EnabledFilter
+        {
+            All = 0,
+            Enabled = 1,
+            Disabled = 2
         }
 
         private CatSyncDanceDanceEditWindows()
@@ -163,6 +173,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 _sortMode = SortMode.None;
                 _sortDescending = false;
                 _loopFilter = LoopFilter.All;
+                _enabledFilter = EnabledFilter.All;
                 _categoryFilterIndex = -1;
                 Repaint();
             }
@@ -182,6 +193,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
 
             EditorGUILayout.BeginHorizontal();
             _loopFilter = (LoopFilter)EditorGUILayout.Popup("循环", (int)_loopFilter, LoopFilterNames);
+            _enabledFilter = (EnabledFilter)EditorGUILayout.Popup("启用", (int)_enabledFilter, EnabledFilterNames);
             var categoryOptions = new string[_danceCategories.Length + 1];
             categoryOptions[0] = "全部";
             for (var i = 0; i < _danceCategories.Length; i++)
@@ -332,6 +344,13 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                 if (_loopFilter == LoopFilter.NoLoop && loop) return false;
             }
 
+            if (_enabledFilter != EnabledFilter.All)
+            {
+                var enabled = prop.FindPropertyRelative("enabled").boolValue;
+                if (_enabledFilter == EnabledFilter.Enabled && !enabled) return false;
+                if (_enabledFilter == EnabledFilter.Disabled && enabled) return false;
+            }
+
             if (_categoryFilterIndex >= 0 && _categoryFilterIndex < _danceCategories.Length)
             {
                 if (!ContainsCategory(prop.FindPropertyRelative("categories"), _danceCategories[_categoryFilterIndex])) return false;
@@ -401,13 +420,17 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             var loop = prop.FindPropertyRelative("loop");
             var speed = prop.FindPropertyRelative("speed");
             var localIndexProp = prop.FindPropertyRelative("localIndex");
+            var enabledProp = prop.FindPropertyRelative("enabled");
             var categoriesProp = prop.FindPropertyRelative("categories");
 
             var itemList = GetOrCreateItemList(arrayIndex, prop);
 
-            // 1. 舞蹈名称
+            // 1. 舞蹈名称 + 启用开关
+            var enabledLabelWidth = EditorStyles.label.CalcSize(EnabledLabel).x;
+            var enabledToggleWidth = EditorGUIUtility.singleLineHeight;
+            var enabledFieldWidth = enabledLabelWidth + 2f + enabledToggleWidth;
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(new Rect(x, y, rect.width, lineH), danceName, DanceNameLabel);
+            EditorGUI.PropertyField(new Rect(x, y, Mathf.Max(0f, rect.width - enabledFieldWidth - 4f), lineH), danceName, DanceNameLabel);
             if (EditorGUI.EndChangeCheck())
             {
                 if (DanceNameCheck(arrayIndex, danceName.stringValue).Not())
@@ -415,6 +438,9 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
                     danceName.stringValue = GetUniqueDanceName(arrayIndex, danceName.stringValue);
                 }
             }
+            var enabledFieldX = rect.xMax - enabledFieldWidth;
+            EditorGUI.LabelField(new Rect(enabledFieldX, y, enabledLabelWidth, lineH), EnabledLabel);
+            EditorGUI.PropertyField(new Rect(enabledFieldX + enabledLabelWidth + 2f, y, enabledToggleWidth, lineH), enabledProp, GUIContent.none);
             y += lineH + spacing;
 
             // 2. 路径类型 + localIndex
@@ -684,6 +710,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             newProp.FindPropertyRelative("danceName").stringValue = GetUniqueDanceName(index, "Dance");
             newProp.FindPropertyRelative("speed").floatValue = 3f;
             newProp.FindPropertyRelative("loop").boolValue = true;
+            newProp.FindPropertyRelative("enabled").boolValue = true;
 
             _itemLists.Clear();
             _dirty = true;
@@ -724,6 +751,7 @@ namespace io.github.sereinfish.cat.tools.editor.inspector
             return _sortMode == SortMode.None
                    && string.IsNullOrEmpty(_search)
                    && _loopFilter == LoopFilter.All
+                   && _enabledFilter == EnabledFilter.All
                    && _categoryFilterIndex < 0;
         }
 

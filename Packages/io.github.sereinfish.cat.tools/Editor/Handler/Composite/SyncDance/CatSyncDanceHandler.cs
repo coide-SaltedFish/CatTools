@@ -80,6 +80,14 @@ namespace io.github.sereinfish.cat.tools.editor.handler
         }
 
         /// <summary>
+        /// 判断舞蹈是否启用；未启用的舞蹈在构建阶段跳过。
+        /// </summary>
+        private static bool IsDanceEnabled(CatSyncDanceEntry dance)
+        {
+            return dance != null && dance.enabled;
+        }
+
+        /// <summary>
         /// 校验并自动修复舞蹈引用的资源导入选项：
         /// 1. AudioClip 未开启「Load In Background」时输出 Warn 并自动开启；
         /// 2. 指定为循环的动画剪辑（最后一个剪辑，含单剪辑）未开启 Loop Time 时输出 Warn 并自动开启。
@@ -91,7 +99,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
             foreach (var dance in entity.dances)
             {
-                if (dance == null) continue;
+                if (!IsDanceEnabled(dance)) continue;
 
                 // AudioClip 后台加载
                 if (dance.musicClip != null && !dance.musicClip.loadInBackground)
@@ -430,6 +438,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 {
                     foreach (var syncDanceEntry in entity.dances)
                     {
+                        if (!IsDanceEnabled(syncDanceEntry)) continue;
                         foreach (var danceParameter in syncDanceEntry.danceParameters)
                         {
                             builder.Equal(danceParameter.parameterName, danceParameter.value)
@@ -440,6 +449,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
 
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
+                        if (!IsDanceEnabled(entity.dances[i])) continue;
                         builder.Or().Equal(entity.controllerParameterName, GetDanceLocalIndex(i));
                     }
                 }).Build();
@@ -458,6 +468,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             {
                 var danceStateX = 600;
                 var syncDanceEntry = entity.dances[i];
+                if (!IsDanceEnabled(syncDanceEntry)) continue;
                 var localIndex = GetDanceLocalIndex(i);
                 // 开始条件
                 var toDanceConditions = ConditionsBuilder.Create()
@@ -592,6 +603,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
             for (var i = 0; i < entity.dances.Length; i++)
             {
                 var danceInfo = entity.dances[i];
+                if (!IsDanceEnabled(danceInfo)) continue;
                 var localIndex = GetDanceLocalIndex(i);
                 var clip = AnimationBuilder.Create()
                     .Run(builder =>
@@ -689,6 +701,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 var musicClips = new AudioClip[Mathf.Max(1, entity.GetMaxDanceLocalIndex() + 1)];
                 for (var i = 0; i < entity.dances.Length; i++)
                 {
+                    if (!IsDanceEnabled(entity.dances[i])) continue;
                     var li = GetDanceLocalIndex(i);
                     if (li > 0 && li < musicClips.Length) musicClips[li] = entity.dances[i].musicClip;
                 }
@@ -710,6 +723,7 @@ namespace io.github.sereinfish.cat.tools.editor.handler
                 {
                     for (var i = 0; i < entity.dances.Length; i++)
                     {
+                        if (!IsDanceEnabled(entity.dances[i])) continue;
                         var li = GetDanceLocalIndex(i);
                         build.Or()
                             .Equal(entity.controllerParameterName, li)

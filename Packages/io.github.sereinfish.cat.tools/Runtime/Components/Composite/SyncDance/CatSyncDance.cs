@@ -101,6 +101,7 @@ namespace io.github.sereinfish.cat.tools.Components
             var list = new List<int> { 0 };
             foreach (var catSyncDanceEntry in dances)
             {
+                if (catSyncDanceEntry == null || !catSyncDanceEntry.enabled) continue;
                 foreach (var danceParameter in catSyncDanceEntry.danceParameters)
                 {
                     if (danceParameter.parameterName == parameterName)
@@ -117,6 +118,7 @@ namespace io.github.sereinfish.cat.tools.Components
             var max = 0;
             foreach (var catSyncDanceEntry in dances)
             {
+                if (catSyncDanceEntry == null || !catSyncDanceEntry.enabled) continue;
                 foreach (var danceParameter in catSyncDanceEntry.danceParameters)
                 {
                     if (danceParameter.parameterName == parameterName && danceParameter.value > max)
